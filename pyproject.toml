@@ -1,0 +1,36 @@
+[build-system]
+requires = [
+    "setuptools>=80.9.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docassemble.VTSuperiorCourtDebtAnswer"
+version = "1.0"
+description = "Superior Court debt answer interview for Vermont"
+readme = "README.md"
+authors = [
+    { name = "Legal Services Vermont and Lemma Legal", email = "ksurette@legalservicesvt.org" },
+]
+dependencies = [
+    "docassemble.AssemblyLine",
+    "docassemble.ALToolbox",
+    "docassemble.VTSharedYMLFile",
+    "docassemble.VTFinancialDisclosure",
+    "docassemble.VTDisclosureOfExemptIncome",
+    "docassemble.VTFeeWaiverWithIncludeYMLFile",
+    "docassemble.VTNoticeOfAppearance",
+    "docassemble.VTCertificateOfServiceGeneral",
+]
+license = "MIT"
+license-files = [
+    "LICENSE",
+]
+
+[project.urls]
+Homepage = "https://VTLawHelp.org"
+
+[tool.setuptools.packages.find]
+where = [
+    ".",
+]
