@@ -1,0 +1,1035 @@
+---
+include:
+  - docassemble.VTFinancialDisclosure:VT_financial_disclosure_to_include.yml
+  - docassemble.VTDisclosureOfExemptIncome:disclosure_of_exempt_income_to_include.yml
+  - docassemble.VTFeeWaiverWithIncludeYMLFile:VT_fee_waiver_to_include.yml
+  - docassemble.VTNoticeOfAppearance:VTNoticeOfAppearance_to_include.yml
+  - docassemble.VTCertificateOfServiceGeneral:general_certificate_of_service_to_include.yml
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALToolbox:phone-number-validation.yml
+  - docassemble.VTSharedYMLFile:VTSharedYMLFile.yml
+---
+metadata:
+  title: Superior Court debt answer
+  short title: Superior Court debt answer
+  description: >-
+    Repond to a debt collection Complaint filed in the Civil Division of Vermont Superior Court.
+  can_I_use_this_form: |
+    Use this tool if you received a Complaint about a debt in the Civil Division of Vermont Superior Court, and your Summons says you have 21 days to answer.
+  before_you_start: |
+    Have the Complaint and Summons with you. You will need the names of the parties, the court and county, the case number if there is one, and the numbered paragraphs in the Complaint.
+  maturity: development
+  estimated_completion_minutes: 30
+  estimated_completion_delta: 10
+  LIST_topics: 
+    - "MO-10-00-00-00"
+  tags:
+    - "MO-10-00-00-00"
+  authors:
+    - K. Surette, VTCourtForms / Legal Services Vermont
+    - K. McGuire, Lemma Legal
+  original_form:
+  original_form_published_on:
+  help_page_url:
+  help_page_title:
+  allowed_courts: []
+  typical_role: "defendant"
+  languages:
+    - en
+  jurisdiction: NAM-US-US+VT
+  review_date: 2026-08-10
+  form_titles:
+    - Answer
+    - Counterclaim
+    - Notice of Appearance
+    - Certificate of Service
+    - Disclosure of Exempt Income
+    - Financial Disclosure Affidavit
+    - Application to Waive Filing Fees and Service Costs
+  form_numbers:
+  update_notes: |
+---
+code: |
+  # This controls the default country and list of states in address field questions
+  AL_DEFAULT_COUNTRY = "US"
+---
+code: |
+  # This controls the default state in address field questions
+  AL_DEFAULT_STATE = "VT"
+---
+code: |
+  github_repo_name = "docassemble-VTSuperiorCourtDebtAnswer"
+---
+code: |
+  interview_short_title = "Respond to a Superior Court debt collection case"
+---
+code: |
+  al_form_type = "existing_case"
+---
+objects:
+  - users: ALPeopleList.using(ask_number=False, minimum_number=1, complete_attribute='complete')
+  - other_parties: ALPeopleList.using(ask_number=False, minimum_number=1, complete_attribute='complete')
+  - all_courts: ALCourtLoader.using(file_name='docassemble.VTSharedYMLFile:data/sources/courts_list_full.xlsx')
+  - allegation_answers: DAList.using(object_type=DAObject, complete_attribute='complete')
+  - other_reliefs: DAList.using(object_type=DAObject, ask_number=False, minimum_number=1, complete_attribute='complete')
+  - counterclaim_reliefs: DAList.using(object_type=DAObject, ask_number=False, minimum_number=1, complete_attribute='complete')
+---
+code: |
+  enable_al_nav_sections = True
+---
+reconsider: True
+variable name: al_nav_sections
+data:
+  - intro: Is this tool right for you?
+  - about_you: About you
+  - case_info: Your court case
+  - other_party: The plaintiff
+  - complaint: Answer the Complaint
+  - any_defenses: Any defenses?
+  - counterclaims: Any counterclaim?
+  - exempt_income: Any exempt income?
+  - other_relief: Other requests
+  - notice_of_appearance: Notice of Appearance
+  - certificate_of_service: Certificate of Service
+  - review_superior_court_debt_answer: <i class="fa-solid fa-pencil"></i> <u>Edit your answers</u>
+  - sign: Sign your documents
+  - get_docs: Download your documents
+---
+############ Interview order ############
+id: interview order superior court debt answer
+code: |
+  user_role = "defendant"
+  user_ask_role = "defendant"
+  user_has_attorney = False
+  trial_court_division = "Civil"
+  court_division = "Civil"
+  division_requires_county = True
+
+  nav.set_section('intro')
+  got_debt_complaint
+  if not got_debt_complaint:
+    wrong_interview_kickout
+  elif small_claims_complaint:
+    wrong_interview_kickout
+  plaintiff_requests_nonmoney
+  if plaintiff_requests_nonmoney:
+    wrong_interview_kickout
+  summons_response_days
+  if summons_response_days != "21":
+    wrong_interview_kickout
+  has_docket_number
+  if has_docket_number and not docket_number_has_cv:
+    wrong_interview_kickout
+  if not has_docket_number:
+    docket_number = ""
+  date_received
+  if date_received <= today().minus(days=21):
+    late_answer_warning
+  else:
+    you_can_use_this_tool
+  lets_get_started
+
+  nav.set_section('about_you')
+  users.gather()
+  users[0].address.address
+  users[0].phone_number
+  users[0].email
+  set_progress(18)
+
+  nav.set_section('case_info')
+  user_selected_county
+  trial_court.address.county
+  set_progress(28)
+
+  nav.set_section('other_party')
+  other_parties.gather()
+  set_progress(36)
+
+  nav.set_section('complaint')
+  number_of_complaint_paragraphs
+  for i in range(number_of_complaint_paragraphs):
+    allegation_answers[i].complete
+  set_progress(52)
+
+  nav.set_section('any_defenses')
+  defenses
+  if len(defenses.true_values()) > 0:
+    disagrees_additional_explanation
+  else:
+    no_defenses_check
+  set_progress(62)
+
+  nav.set_section('counterclaims')
+  if len(defenses.true_values()) > 0:
+    wants_to_file_counterclaim
+    if wants_to_file_counterclaim:
+      counterclaim_details
+
+      wants_counterclaim_other_relief
+      if wants_counterclaim_other_relief:
+        counterclaim_reliefs.gather()
+      else:
+        counterclaim_reliefs.there_are_any = False
+
+      wants_to_fill_out_fee_waiver_now
+      if wants_to_fill_out_fee_waiver_now:
+        interview_order_VT_fee_waiver
+  else:
+    wants_to_file_counterclaim = False
+  set_progress(72)
+
+  nav.set_section('exempt_income')
+  has_exempt_income_state
+
+  if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
+    living_expenses_more_than_income
+
+    if living_expenses_more_than_income:
+      interview_order_financial_disclosure
+    else:
+      otherwise_exempt
+  set_progress(82)
+
+  nav.set_section('other_relief')
+  wants_other_relief_choices
+  if wants_other_relief_choices['other_relief']:
+    other_reliefs.gather()
+
+  nav.set_section('notice_of_appearance')
+  notice_of_appearance_transition
+  interview_order_a_notice_of_appearance_self_rep
+
+  nav.set_section('certificate_of_service')
+  certificate_of_service_transition
+  certificate_of_service_prechecked_documents
+  interview_order_general_certificate_of_service
+
+  superior_court_debt_answer_interview_order = True
+---
+mandatory: True
+id: main order superior court debt answer
+code: |
+  al_intro_screen
+  superior_court_debt_answer_interview_order
+  nav.set_section("review_superior_court_debt_answer")
+  superior_court_debt_answer_preview_question
+  nav.set_section("sign")
+  signature_date
+  al_form_requires_digital_signature = False
+  basic_questions_signature_flow
+  nav.set_section("get_docs")
+  superior_court_debt_answer_download
+---
+############# Code due to fee waiver and financial disclosure forms ##########
+code: |
+  if not household_others.there_are_any:
+    household_size = 1
+  elif defined("household_size"):
+    household_others.target_number = household_size - 1
+  elif defined("household_others.target_number"):
+    household_size = household_others.target_number + 1
+---
+id: basic questions intro screen
+question: |
+  **${ interview_short_title } in Vermont**
+subquestion: |
+  ${ intro_vtcourtforms_3_steps }
+
+  <i class="fas fa-file-text fa-2x"></i> This tool will produce forms to respond to a Superior Court debt collection Complaint. Depending on your answers to the questions, this tool will complete these forms:
+  
+  - Answer
+  - Counterclaim
+  - Notice of Appearance
+  - Certificate of Service
+  - Disclosure of Exempt Income (VTCourtForms will tell you if you need this)
+  - Court fee waiver form (if you want to make a "counterclaim" and you have a low income)
+  - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
+
+  Some people use the court's answer form and others do not. Either approach is allowed. To be flexible for all users, this tool does not use the court’s answer form. Instead, it builds an answer for you.
+
+  <i class="fas fa-clock fa-2x"></i> It may take about 40 minutes to complete this interview.
+
+  <i class="fas fa-circle-info fa-2x"></i> This site is not a lawyer. Visit [VTLawHelp.org](https://vtlawhelp.org) for legal information.
+
+  ${ intro_vtcourtforms_created_by }
+
+  Tap Next to continue.
+continue button field: al_intro_screen
+---
+id: screening debt complaint
+question: |
+  Is this tool right for you?
+subquestion: |
+  If you are getting sued for debt collection in Superior Court, it is often because the debt is too large for Small Claims Court.
+
+  This tool is for creating an answer for Superior Court. We have a different tool for Small Claims Court.
+
+  The Complaint might say something like:
+  
+  - Plaintiff respectfully requests this court enter judgment against Defendant awarding Plaintiff the following:
+      - a. $xx,xxx, which is the amount due and owing;
+      - b. Court costs; and
+      - c. Such other and further relief that the Court deems proper.
+
+  The Complaint might say something like: Plaintiff respectfully requests this court enter judgment against Defendant awarding Plaintiff the following: a. $xx,xxx, which is the amount due and owing; b. Court costs; and c. Such other and further relief that the Court deems proper.
+fields:
+  - "Did you get a document called a **Complaint** that talks about a debt that a person or business thinks you owe?": got_debt_complaint
+    datatype: yesnoradio
+  - note: |
+      It doesn't sound like this is the right tool for you.
+    show if:
+      variable: got_debt_complaint
+      is: False
+  - "Does it say **Small Claims Complaint**?": small_claims_complaint
+    datatype: yesnoradio
+    show if:
+      variable: got_debt_complaint
+      is: True
+  - note: |
+      You said that the document says **Small Claims Complaint**. Respond to a Small Claims Complaint using our tool which can be found [here](https://www.vtlawhelp.org/cfp/respond-small-claims-complaint).
+    show if:
+      variable: small_claims_complaint
+      is: True
+---
+id: screening money only
+question: |
+  What is the Plaintiff asking for?
+subquestion: |
+  This tool is only for lawsuits involving money.
+fields:
+  - Is the Plaintiff asking the court for anything that is **not money**?: plaintiff_requests_nonmoney
+    datatype: yesnoradio
+---
+id: screening summons response days
+question: |
+  The Summons should include a response time.
+fields:
+  - "How many days does the Summons say you have to respond?": summons_response_days
+    input type: radio
+    choices:
+      - 21 days: "21"
+      - 30 days: "30"
+      - I did not get a Summons or I don't know: unknown
+---
+id: complaint case number info
+question: |
+  Case number
+subquestion: |
+  The Complaint **may** have a docket number or case number at the top.
+fields:
+  - "Is there a case number on the Complaint?": has_docket_number
+    datatype: yesnoradio
+  - "Does the case number include **CV** (which stands for **Civil Court**)?": docket_number_has_cv
+    datatype: yesnoradio
+    show if: has_docket_number
+  - "Does the Complaint say it is a **Small Claims Complaint**?": complaint_says_small_claims
+    datatype: yesnoradio
+    show if:
+      variable: docket_number_has_cv
+      is: False
+  - "What is the case number?": docket_number
+    show if: docket_number_has_cv
+---
+id: wrong interview kickouts
+question: |
+  Stop
+subquestion: |
+  This is not the right tool for this situation.
+
+  % if defined('small_claims_complaint') and small_claims_complaint or has_docket_number and not docket_number_has_cv:
+  This tool is for Superior Court debt cases, not Small Claims Court cases.
+
+  You can find information about Small Claims Complaints and use our tool to respond to a Small Claims Complaint [here](https://www.vtlawhelp.org/cfp/respond-small-claims-complaint).
+
+  If you are not sure if this is a Small Claims Court case or a case in Superior Court, call the court and ask! 
+  % elif defined('plaintiff_requests_nonmoney') and plaintiff_requests_nonmoney:
+  Call us if the complain is asking for money and something else, we may be able to give you quick advice or a referral.
+  % elif defined('summons_response_days') and summons_response_days != "21":
+  This tool can only help you with a Summons that says you have **21 days** to respond.
+  % else:
+  This tool is for someone who received a debt collection Complaint in Vermont Superior Court.
+  % endif
+
+  If you think that you made a mistake you can hit "Undo" to return to the previous screen and fix your answers.
+continue button field: wrong_interview_kickout
+buttons:
+  - DELETE your answers: restart
+---
+id: screening date complaint received
+question: |
+  When did you receive the Complaint?
+fields:
+  - "Date recieved:": date_received
+    datatype: date
+---
+# calculate answer deadline
+code: |
+  answer_deadline = date_received.plus(days=21)
+---
+id: screening late answer warning
+question: |
+  File your answer as soon as possible
+subquestion: |
+  The Summons gives you 21 days to respond. You should file your answer **as soon as possible**, before the Plaintiff asks for a default judgment.
+  
+  A request for a default judgment can happen any time after the 21-day deadline.
+
+  <i class="fas fa-check fa-3x" style="color: #429a3c;" aria-hidden="true"></i> You can still use this tool to complete your answer.
+continue button field: late_answer_warning
+---
+id: you can use this tool
+question: |
+  Response deadline
+subquestion: |
+  <i class="fas fa-check fa-3x" style="color: #429a3c;" aria-hidden="true"></i> Yes, you can use this tool.
+
+  You said you received the Complaint on ${ date_received }. Based on the 21-day response period, your answer is due by **${ answer_deadline }**.
+continue button field: you_can_use_this_tool
+---
+id: lets get started
+question: |
+  Getting started
+subquestion: |
+  Have the Complaint and Summons in front of you. You will answer the Complaint paragraph by paragraph.
+
+  **Important: This tool does not file your forms for you.** When you are finished, you will need to send your answer back to the court and send a copy to the other party (the plaintiff). Our Next Steps document at the end of this tool will give you instructions.
+  
+  Keep in mind, you can edit your answers after you preview the finished forms. You can also do that anytime by choosing Edit My Answers on the side of the screen or in the Menu at the top-right of the screen.
+  
+  You can also go to the Menu and quickly Exit and Delete Your Answers if you need to. And, you may choose to make a free account so you can store your answers online and come back to them later.
+
+fields:
+  - To continue, please accept our [terms of use](https://vtlawhelp.org/vtcourtforms/terms-of-use).: acknowledged_information_use
+    datatype: checkboxes
+    none of the above: False
+    minlength: 1
+    choices:
+      - I accept the terms of use.
+    validation messages:
+      minlength: You cannot continue unless you agree to the terms of use.
+continue button field: lets_get_started
+---
+id: your name
+sets:
+  - users[i].name.first
+  - users[i].name.middle
+  - users[i].name.last
+  - users[i].name.suffix
+question: |
+  % if i == 0:
+  What is your name?
+  % else:
+  What is the name of the ${ ordinal(i) } ${ user_role }?
+  % endif
+subquestion: |
+  % if i > 0:
+  Enter the name as it appears on the court papers.
+  % endif
+fields:
+  - code: |
+      users[i].name_fields()
+---
+id: any other users
+question: |
+  Are there any other ${ user_role }s named in the case?
+subquestion: |
+  Tip: Look at your court papers. They will list the defendants.
+yesno: users.there_is_another
+---
+code: |
+  users[i].name.first
+  users[i].complete = True
+---
+id: gather users address
+sets:
+  - users[0].address.address
+  - users[0].address.city
+  - users[0].address.zip
+  - users[0].address.unit
+  - users[0].address.state
+  - users[0].address.country
+question: |
+  What is your address?
+fields:
+  - code: |
+      users[0].address_fields(default_state=AL_DEFAULT_STATE)
+  - I have a mailing address that is different from my street address: users1_mailing_address_different
+    datatype: yesno
+  - Mailing address: users[0].mailing_address.address
+    address autocomplete: True
+    show if: users1_mailing_address_different
+  - Unit: users[0].mailing_address.unit
+    required: False
+    show if: users1_mailing_address_different
+  - City: users[0].mailing_address.city
+    show if: users1_mailing_address_different
+  - State: users[0].mailing_address.state
+    code: states_list()
+    default: VT
+    show if: users1_mailing_address_different
+  - Zip or postal code: users[0].mailing_address.zip
+    required: False
+    show if: users1_mailing_address_different
+---
+id: phone and email
+question: |
+  Phone and email
+fields:
+  - Your home or cell phone number: users[0].phone_number
+    datatype: al_international_phone
+    required: false
+  - Your work phone or other number: users[0].work_phone_number
+    datatype: al_international_phone
+    required: false
+  - Your email address: users[0].email
+    required: false
+---
+id: choose a court county
+question: |
+  What county is your case in?
+subquestion: |
+  Look at the Complaint. The county is usually in the upper-left near the word **Unit**.
+fields:
+  - County: user_selected_county
+    code: sorted(all_courts.unique_column_values('branch') - {"Environmental", "Judicial Bureau"})
+  - note: |
+      ${ collapse_template(which_county_to_choose) }
+      ${ collapse_template(in_which_county) }
+---
+code: |
+  trial_court_index = all_courts.matching_courts_in_county(county_name=user_selected_county, search_columns=['division_abbr'], search_string=trial_court_division)[0][0]
+---
+id: name and address of opposing parties
+sets:
+  - other_parties[i].name.first
+  - other_parties[i].name.last
+  - other_parties[i].name.middle
+  - other_parties[i].name.suffix
+  - other_parties[i].debt_answer_name_complete
+question: |
+  Name and address of ${ ordinal(i) } plaintiff in this case
+subquestion: |
+  A plaintiff is the person, company, or organization suing you. There may be more than one plaintiff. Look at the Complaint for this information.
+fields:
+  - code: |
+      other_parties[i].name_fields(person_or_business='unsure')
+validation code: |
+  other_parties[i].debt_answer_name_complete = True
+---
+id: any other opposing parties
+question: |
+  Is there another plaintiff in this case?
+fields:
+  - no label: other_parties.there_is_another
+    datatype: yesnoradio
+---
+code: |
+  other_parties[i].debt_answer_name_complete
+  other_parties[i].complete = True
+---
+id: number of complaint paragraphs
+question: |
+  How many numbered paragraphs are in the Complaint?
+subquestion: |
+  Count the numbered paragraphs in the Complaint. On the next screens, we will ask you about each one.
+fields:
+  - Number of numbered paragraphs: number_of_complaint_paragraphs
+    datatype: integer
+    min: 1
+---
+id: answer complaint paragraph
+question: |
+  Paragraph ${ i + 1 }
+subquestion: |
+  Read paragraph ${ i + 1 } of the Complaint before answering.
+
+  - If you agree with everything in the Complaint, the Plaintiff may be able to get a judgment without a hearing.
+  - If you do not recall a statement as 100% true, choose **I don't know**. If you have a reason to doubt it, choose **I disagree**.
+  - If a paragraph only describes the company or what the company did, it may be appropriate to choose **I don't know**.
+fields:
+  - Your response: allegation_answers[i].choice
+    input type: radio
+    choices:
+      - I agree: agree
+      - I disagree: disagree
+      - I agree with part and disagree with part: agree_disagree
+      - I don't know if this is true: dont_know
+      - No response is required for this paragraph: response_not_required
+  - Short explanation: allegation_answers[i].explanation
+    input type: area
+    maxlength: 500
+    required: False
+    js show if: |
+      val("allegation_answers[i].choice") == "disagree" || val("allegation_answers[i].choice") == "agree_disagree"
+validation code: |
+  if allegation_answers[i].choice == "agree_disagree" and not allegation_answers[i].explanation.strip():
+    validation_error("Explain what part you agree with and what part you disagree with.", field="allegation_answers[i].explanation")
+  allegation_answers[i].complete = True
+---
+code: |
+  any_allegation_disputed = any(x.choice in ["disagree", "agree_disagree"] for x in allegation_answers.complete_elements())
+---
+id: defenses
+question: |
+  Any reasons why you believe you do **not** owe this money?
+subquestion: |
+  % if defined("other_parties[1]"):
+  In this Superior Court debt case, the plaintiffs (${ other_parties.short_list(2) }) have started the case by filing a "complaint" against you.
+  % else:
+  In this Superior Court debt case, a plaintiff (${ other_parties.short_list(2) }) has started the case by filing a "complaint" against you.
+  % endif
+  
+  “Defenses” are reasons why ${ other_parties.short_list(2) } may not have a legal right to the money. This screen will help you report any possible defenses in your answer.
+
+  % if defined("other_parties[1]"):
+  **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } have claimed and you are asking for a court hearing.
+  % else:
+  **Note**: If you choose any defenses, you are choosing to disagree with what ${ other_parties.short_list(2) } has claimed and you are asking for a court hearing.
+  % endif
+fields:
+  - Check any boxes that describe your situation, or check None: defenses
+    datatype: checkboxes
+    choices:
+      - "I don’t owe money to the plaintiff.": dont_owe
+      - "I do not know if the plaintiff's claims are true.": dont_know
+      - "I have already paid the plaintiff.": already_paid
+      - "The dollar amount the plaintiff is asking for does not match the dollar amount I actually owe. (Tip: If you cannot recall all the amounts, or if you are not sure, check this box.)": amount_doesnt_match
+      - "I do not recognize this debt. (Tip: If you cannot recall everything that the plaintiff is saying in their complaint, or if you are not sure, check this box.)": do_not_recognize
+      - "This debt is discharged due to my personal bankruptcy.": bankruptcy
+      - "This debt is of a Limited Liability Corporation (LLC) registered in my name.": llc_debt
+      - "The plaintiff is not the original creditor or lender of the money, and I do not believe the plaintiff has the right to collect the money.": not_orginal_creditor
+      - "It has been at least six years since I incurred this debt.": long_time_since_debt
+      - "It has been at least six years since my last payment of this debt.": long_time_since_payment
+      - "**I do not owe this money for another reason**. (Tip: You can explain on the next screen.)": other_reason
+    none of the above: None of the above -- **I have no defenses. I agree with the complaint.**
+---
+# "!!omap" makes these terms ordered: 
+# their order here will be their same order when shown to users.
+variable name: defenses_terms
+data: !!omap
+  - dont_owe: "I don’t owe money to the plaintiff."
+  - dont_know: "I do not know if the plaintiff's claims are true."
+  - already_paid: "I have already paid the plaintiff."
+  - do_not_recognize: "I do not recognize this debt."
+  - amount_doesnt_match: "The dollar amount the plaintiff is asking for does not match the dollar amount I actually owe."
+  - bankruptcy: "This debt is discharged due to personal bankruptcy."
+  - llc_debt: "This debt is of a Limited Liability Corporation registered in my name."
+  - not_orginal_creditor: "The plaintiff is not the original creditor or lender of the money, and I do not believe the plaintiff has the right to collect the money."
+  - long_time_since_debt: "It has been at least six years since I incurred this debt."
+  - long_time_since_payment: "It has been at least six years since my last payment of this debt."
+  - other_reason: "I do not owe this money."
+---
+id: disagrees with the complaint
+depends on:
+  - defenses['dont_owe']
+  - defenses['dont_know']
+  - defenses['already_paid']
+  - defenses['amount_doesnt_match']
+  - defenses['do_not_recognize']
+  - defenses['bankruptcy']
+  - defenses['llc_debt']
+  - defenses['not_orginal_creditor']
+  - defenses['long_time_since_debt']
+  - defenses['long_time_since_payment']
+  - defenses['other_reason']
+question: |
+  Do you want to add any more details?
+subquestion: |
+  So far, this is the text we have to explain your defense(s). You can explain a little more if you want.
+
+  % for item in defenses.true_values():
+  - **${ defenses_terms[item] }**
+  % endfor
+
+  You can explain any of the defenses you selected.
+
+  If you selected **I do not owe this money for another reason**, explain that reason here.
+fields:
+  - More explanation: disagrees_additional_explanation
+    input type: area
+    maxlength: 800
+    required: False
+validation code: |
+  if defenses['other_reason'] and not disagrees_additional_explanation.strip():
+    validation_error("Explain the other reason you believe you do not owe this money.", field="disagrees_additional_explanation")
+---
+id: no defenses check
+question: |
+  You did not select a defense
+subquestion: |
+  Take another look at the list of defenses before continuing.
+
+  If one of the listed defenses applies, go back and select it. If you have a different reason why you believe you do not owe the money, go back and select **I do not owe this money for another reason** and explain it.
+
+  If none of the defenses apply, you can continue without listing a defense.
+continue button field: no_defenses_check
+---
+id: wants counterclaim
+question: |
+  Do you want to file a counterclaim?
+subquestion: |
+  A **counterclaim** is a claim that you make against the Plaintiff in this same case. To succeed, you will need to prove your counterclaim.
+
+  **The filing fee for a counterclaim is $90.**
+
+  If you have a low income or receive public assistance, you can ask the court to waive the filing fee.
+fields:
+  - Do you want to file a counterclaim against ${ other_parties.short_list(2) }?: wants_to_file_counterclaim
+    datatype: yesnoradio
+---
+# Think this needs some more explanation or some accordion help text (but written by a lawyer/someone with more knowledge)
+id: counterclaim details
+question: |
+  Tell us about your counterclaim
+subquestion: |
+  Explain what the Plaintiff did that caused you to make a counterclaim.
+
+  If you know what rule or law the Plaintiff broke, you can include it. For example, if you believe the Plaintiff violated the Fair Debt Collection Practices Act, you could say:
+
+  **"...in violation of the Fair Debt Collection Practices Act (FDCPA), 15 U.S. Code § 1692."**
+fields:
+  - How much money do you want to ask for in your counterclaim?: counterclaims_amount
+    datatype: currency
+    min: 0
+
+  - What did the Plaintiff do that caused you to make a counterclaim?: counterclaims_description
+    input type: area
+    maxlength: 1200
+
+  - What rule or law did the Plaintiff break, if you know?: counterclaim_law
+    input type: area
+    required: false
+    maxlength: 500
+validation code: |
+  counterclaim_details = True
+---
+reconsider: True
+code: |
+  merged_counterclaims_text = counterclaims_description.strip()
+
+  if defined('counterclaim_law') and counterclaim_law.strip():
+    merged_counterclaims_text += " " + counterclaim_law.strip()
+---
+id: wants counterclaim other relief
+question: |
+  Any other relief?
+subquestion: |
+  This is for requests other than the amount of money you already entered.
+fields:
+  - "Do you want to ask for any other relief on your counterclaim?": wants_counterclaim_other_relief
+    datatype: yesnoradio
+---
+id: counterclaim relief item
+question: |
+  What else do you want the court to order on your counterclaim?
+subquestion: |
+  Add any other relief you want besides the money amount. You can add requests one at a time.
+fields:
+  - Other relief: counterclaim_reliefs[i].name
+    input type: area
+    maxlength: 400
+validation code: |
+  counterclaim_reliefs[i].complete = True
+---
+id: another counterclaim relief
+question: |
+  Do you want to add another request for relief on your counterclaim?
+fields:
+  - no label: counterclaim_reliefs.there_is_another
+    datatype: yesnoradio
+---
+id: want to fill out fee waiver
+question: |
+  Would you like to fill out a fee waiver?
+subquestion: |
+  Filing a counterclaim costs $90. If you receive public assistance or have a low income, you can ask the court to waive the filing fee.
+fields:
+  - "Do you want to fill out a fee waiver form for your counterclaim?": wants_to_fill_out_fee_waiver_now
+    datatype: yesnoradio
+---
+id: exempt income
+question: |
+  Do you have "exempt" income?
+subquestion: |
+  Certain types of income and assets (things you own) are called "exempt" and cannot be taken to pay a debt.
+
+  As part of your answer, you can let the plaintiff and the court know if all or some of your income may be exempt from collection. Below are examples of exempt income.
+
+  Check any boxes that apply to you.
+
+  **I am currently eligible, or was eligible within the last two months, for benefits from these exempt sources:**
+fields:
+  - no label: has_exempt_income_state
+    datatype: checkboxes
+    choices:
+      - "the Vermont Department for Children and Families (DCF)": DCF
+      - "the Department of Vermont Health Access (DVHA)": DVHA
+  - note: |
+      ${ collapse_template(dcf_examples) }
+      ${ collapse_template(dvha_examples) }
+
+  - note: |
+      **I have income from these exempt sources:**
+
+  - no label: has_exempt_income_other
+    datatype: checkboxes
+    choices:
+      - "Social Security benefits (including SSDI, SSI and Social Security Retirement payments)": SSA
+      - "Veteran’s Benefits": VA
+      - "Unemployment Compensation": unemployment
+      - "Workers’ Compensation": workers_comp
+---
+template: dvha_examples
+subject: |
+  Examples of DVHA benefit programs
+content: |
+  Examples of DVHA benefits include Medicaid and Dr. Dynasaur.
+---
+template: dcf_examples
+subject: |
+  Examples of DCF benefit programs
+content: |
+  Examples of DCF benefits include 3SquaresVT/SNAP (food), Reach Up, General Assistance, Emergency Housing, Energy Assistance, Fuel Assistance and other programs as seen on this web page: [https://dcf.vermont.gov/benefits](https://dcf.vermont.gov/benefits).
+---
+code: |
+  if len(has_exempt_income_state.true_values()) > 0:
+    disclosure_of_exempt_income_attachment.enabled = True
+  elif len(has_exempt_income_other.true_values()) > 0:
+    disclosure_of_exempt_income_attachment.enabled = True
+  elif defined('otherwise_exempt') and otherwise_exempt.strip():
+    disclosure_of_exempt_income_attachment.enabled = True
+  else:
+    disclosure_of_exempt_income_attachment.enabled = False
+---
+id: living expenses versus income
+question: |
+  Are your living expenses more than your income?
+subquestion: |
+  Are the reasonable living expenses for you and your dependents, such as family members who live with you, **more than your income after taxes**?
+fields:
+  - no label: living_expenses_more_than_income
+    datatype: yesnoradio
+---
+id: other exempt income reason
+question: |
+  Is there another reason your income may be exempt?
+subquestion: |
+  Exempt income cannot be taken to pay a debt.
+
+  If you think your income is exempt for another reason, explain it here. You can leave this blank if you do not have another reason.
+
+  Examples could include:
+
+  - I have no income.
+  - My wages are low enough to be exempt from collection.
+  - Another law protects some or all of my income.
+fields:
+  - Other reason: otherwise_exempt
+    input type: area
+    required: false
+    maxlength: 400
+---
+code: |
+  if defined('living_expenses_more_than_income') and living_expenses_more_than_income:
+    financial_disclosure_attachment.enabled = True
+  else:
+    financial_disclosure_attachment.enabled = False
+---
+code: |
+  if defined('wants_to_fill_out_fee_waiver_now') and wants_to_fill_out_fee_waiver_now:
+    VT_fee_waiver_attachment.enabled = True
+  else:
+    VT_fee_waiver_attachment.enabled = False
+---
+id: wants other relief
+question: |
+  Do you want to ask the court for anything else?
+subquestion: |
+  Besides dismissing the Plaintiff's Complaint and/or filing a Counterclaim, do you want any other **relief** from the court?
+
+  We will collect your relief requests one at a time.
+
+  Examples of relief might include asking the court to:
+
+  - order the plaintiff to stop a particular action;
+  - award another type of relief related to your case;
+  - make another order you believe is appropriate.
+
+fields:
+  - Select an option: wants_other_relief_choices
+    datatype: checkboxes
+    choices:
+      - I want to ask for other relief.: other_relief
+    none of the above: None -- I have no other requests.
+---
+id: other relief item
+question: |
+  What else do you want the court to order?
+fields:
+  - Your request: other_reliefs[i].name
+    input type: area
+    maxlength: 400
+validation code: |
+  other_reliefs[i].complete = True
+---
+id: another other relief
+question: |
+  Do you want to add another request?
+fields:
+  - no label: other_reliefs.there_is_another
+    datatype: yesnoradio
+---
+id: notice of appearance transition
+question: |
+  Let’s start the notice of appearance form questions
+subquestion: |
+  A notice of appearance tells the court and the other parties how to contact you and that you are representing yourself in this case.
+  
+  You’ve already answered some of the questions that are asked in the notice of appearance form. Now we’ll work through the remaining questions.
+
+  Tap Next to continue.
+continue button field: notice_of_appearance_transition
+---
+id: certificate of service transition
+question: |
+  Let’s start the certificate of service form questions
+subquestion: |
+  Next, we will ask how you will send your completed court forms to the other party.
+
+  We will use your answers to complete a certificate of service form. This form tells the court which documents you sent, who you sent them to, and how you sent them.
+
+  We have already selected the documents this interview is creating for you. You can change that list or add other documents if needed.
+
+  Tap Next to continue.
+continue button field: certificate_of_service_transition
+---
+# precheck documents served for the reusable general Certificate of Service to include.
+# logic for which forms are prechecked stays in the Debt Answer interview.
+reconsider: True
+code: |
+  certificate_of_service_prechecked_documents = [
+    "Answer",
+    "Notice of Appearance",
+  ]
+
+  if wants_to_file_counterclaim:
+    certificate_of_service_prechecked_documents.append("Counterclaim")
+
+  if defined('wants_to_fill_out_fee_waiver_now') and wants_to_fill_out_fee_waiver_now:
+    certificate_of_service_prechecked_documents.append("Application to Waive Filing Fees and Service Costs")
+
+  if (
+    len(has_exempt_income_state.true_values()) > 0
+    or len(has_exempt_income_other.true_values()) > 0
+    or (defined('otherwise_exempt') and otherwise_exempt.strip())
+  ):
+    certificate_of_service_prechecked_documents.append("Disclosure of Exempt Income")
+
+  if defined('living_expenses_more_than_income') and living_expenses_more_than_income:
+    certificate_of_service_prechecked_documents.append("Financial Disclosure Affidavit")
+---
+code: |
+  if defined('payment') and payment == 'agrees_to_pay_in_full':
+    pay_in_full_date = today().plus(days=30)
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+id: signature date
+question: |
+  Signature date
+fields:
+  - This is how your name will appear under your signature.: printed_signature
+    default: ${ users[0].name }
+  - Date of your signature for these forms: signature_date
+    datatype: date
+    required: False
+    default: ${ today() }
+  - note: |
+      Tap Next to choose how to sign. AssemblyLine lets you sign on this computer, send a link or QR code to a phone to sign there, use a typed /s/ signature, or choose not to sign online and sign the printed forms later.
+---
+id: preview superior court debt answer
+question: |
+  Preview your forms before you sign them
+subquestion: |
+  Here is a preview of the court forms you will sign on the next page.
+
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. Use the Edit answers button if you need to make changes.
+
+  ${ action_button_html(url_action('review_superior_court_debt_answer'), label='<i class="fa-solid fa-pencil"></i> Edit your answers', color='info') }
+
+  Before you sign or download, remember:
+
+  - You must file this answer with the Court **and** send a copy of the answer and attachments to every party in the case.
+  - You must file and send a Certificate of Service showing that you sent the documents.
+  - Anything else you file with the Court must also be sent to every party, with a Certificate of Service.
+  - You must follow the Vermont Rules of Civil Procedure.
+  - You agree that papers in this case may be sent to you at the address you provided.
+continue button field: superior_court_debt_answer_preview_question
+---
+# add review screen
+---
+id: download superior court debt answer
+event: superior_court_debt_answer_download
+question: |
+  ${ download_screen_instructions_headline }
+subquestion: |
+  ${ download_screen_instructions }
+
+  ${ action_button_html(url_action('review_superior_court_debt_answer'), label='<i class="fa-solid fa-pencil"></i> Edit your answers', color='info') }
+
+  <hr>
+
+  <h4 style="margin-bottom: 18px;">Documents to download</h4>
+
+  ${ al_user_bundle.download_list_html() }
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+  <hr>
+
+  ${ download_screen_bottom_instructions }
+  ${ collapse_template(not_seeing_email) }
+  ${ collapse_template(log_out_when_done) }
+  ${ thumbs_up_thumbs_down_review }
+progress: 100
+---
+############ Documents ############
+objects:
+  - superior_court_debt_answer_attachment: ALDocument.using(title="Answer", filename="superior_court_debt_answer", enabled=True, has_addendum=False)
+  - superior_court_debt_counterclaim_attachment: ALDocument.using(title="Counterclaim", filename="superior_court_debt_counterclaim", enabled=wants_to_file_counterclaim, has_addendum=False)
+  - superior_court_debt_next_steps: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="superior_court_debt_next_steps", enabled=True, has_addendum=False)
+  - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False)
+  - financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form", filename="VT_financial_disclosure.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[superior_court_debt_next_steps, superior_court_debt_answer_attachment, superior_court_debt_counterclaim_attachment, a_notice_of_appearance_self_rep_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment, certificate_of_service_attachment], filename="superior_court_debt_answer", title="All forms to download", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[superior_court_debt_answer_attachment, superior_court_debt_counterclaim_attachment, a_notice_of_appearance_self_rep_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment, certificate_of_service_attachment], filename="superior_court_debt_answer", title="All forms to deliver to court", enabled=True)
+---
+attachment:
+  name: Superior Court debt answer
+  filename: superior_court_debt_answer
+  variable name: superior_court_debt_answer_attachment[i]
+  skip undefined: True
+  docx template file: superior_court_debt_answer.docx
+  tagged pdf: True
+---
+attachment:
+  name: Counterclaim
+  filename: superior_court_debt_counterclaim
+  variable name: superior_court_debt_counterclaim_attachment[i]
+  skip undefined: True
+  docx template file: superior_court_debt_counterclaim.docx
+  tagged pdf: True
+---
+attachment:
+  name: Next steps
+  filename: superior_court_debt_next_steps
+  variable name: superior_court_debt_next_steps[i]
+  skip undefined: True
+  docx template file: superior_court_debt_next_steps.docx
+  tagged pdf: True
+---
