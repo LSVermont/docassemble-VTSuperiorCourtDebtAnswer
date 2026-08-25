@@ -160,10 +160,22 @@ code: |
   set_progress(62)
 
   nav.set_section('counterclaims')
+  counterclaims_intro
+  if sued_by_collection_agency:
+    if len(counterclaims.true_values()) == 0:
+      no_counterclaims
+    else:
+      get_merged_counterclaims
+      counterclaims_amount
+  else:
+    if wants_to_file_counterclaim:
+      counterclaims_amount
+    else:
+      no_counterclaims
+  
   if len(defenses.true_values()) > 0:
     wants_to_file_counterclaim
     if wants_to_file_counterclaim:
-      counterclaim_details
 
       wants_counterclaim_other_relief
       if wants_counterclaim_other_relief:
@@ -182,10 +194,9 @@ code: |
   has_exempt_income_state
 
   if len(has_exempt_income_state.true_values()) == 0 and len(has_exempt_income_other.true_values()) == 0:
-    living_expenses_more_than_income
-
     if living_expenses_more_than_income:
-      interview_order_financial_disclosure
+      if wants_financial_disclosure_affidavit:
+        interview_order_financial_disclosure
     else:
       otherwise_exempt
   set_progress(82)
@@ -271,7 +282,6 @@ subquestion: |
       - b. Court costs; and
       - c. Such other and further relief that the Court deems proper.
 
-  The Complaint might say something like: Plaintiff respectfully requests this court enter judgment against Defendant awarding Plaintiff the following: a. $xx,xxx, which is the amount due and owing; b. Court costs; and c. Such other and further relief that the Court deems proper.
 fields:
   - "Did you get a document called a **Complaint** that talks about a debt that a person or business thinks you owe?": got_debt_complaint
     datatype: yesnoradio
@@ -297,7 +307,7 @@ question: |
 subquestion: |
   This tool is only for lawsuits involving money.
 fields:
-  - Is the Plaintiff asking the court for anything that is **not money**?: plaintiff_requests_nonmoney
+  - "Is the Plaintiff asking the court for anything that is **not money**?": plaintiff_requests_nonmoney
     datatype: yesnoradio
 ---
 id: screening summons response days
@@ -331,19 +341,20 @@ fields:
     show if: docket_number_has_cv
 ---
 id: wrong interview kickouts
+event: wrong_interview_kickout
 question: |
   Stop
 subquestion: |
   This is not the right tool for this situation.
 
-  % if defined('small_claims_complaint') and small_claims_complaint or has_docket_number and not docket_number_has_cv:
+  % if ((defined('small_claims_complaint') and small_claims_complaint) or (defined('has_docket_number') and has_docket_number and defined('docket_number_has_cv') and not docket_number_has_cv)):
   This tool is for Superior Court debt cases, not Small Claims Court cases.
 
   You can find information about Small Claims Complaints and use our tool to respond to a Small Claims Complaint [here](https://www.vtlawhelp.org/cfp/respond-small-claims-complaint).
 
-  If you are not sure if this is a Small Claims Court case or a case in Superior Court, call the court and ask! 
+  If you are not sure if this is a Small Claims Court case or a case in Superior Court, call the court and ask!
   % elif defined('plaintiff_requests_nonmoney') and plaintiff_requests_nonmoney:
-  Call us if the complain is asking for money and something else, we may be able to give you quick advice or a referral.
+  Call us if the complaint is asking for money and something else, we may be able to give you quick advice or a referral.
   % elif defined('summons_response_days') and summons_response_days != "21":
   This tool can only help you with a Summons that says you have **21 days** to respond.
   % else:
@@ -351,7 +362,6 @@ subquestion: |
   % endif
 
   If you think that you made a mistake you can hit "Undo" to return to the previous screen and fix your answers.
-continue button field: wrong_interview_kickout
 buttons:
   - DELETE your answers: restart
 ---
@@ -492,9 +502,6 @@ subquestion: |
 fields:
   - County: user_selected_county
     code: sorted(all_courts.unique_column_values('branch') - {"Environmental", "Judicial Bureau"})
-  - note: |
-      ${ collapse_template(which_county_to_choose) }
-      ${ collapse_template(in_which_county) }
 ---
 code: |
   trial_court_index = all_courts.matching_courts_in_county(county_name=user_selected_county, search_columns=['division_abbr'], search_string=trial_court_division)[0][0]
@@ -507,9 +514,11 @@ sets:
   - other_parties[i].name.suffix
   - other_parties[i].debt_answer_name_complete
 question: |
-  Name and address of ${ ordinal(i) } plaintiff in this case
+  Name and address of **${ ordinal(i) }** plaintiff in this case
 subquestion: |
   A plaintiff is the person, company, or organization suing you. There may be more than one plaintiff. Look at the Complaint for this information.
+
+  If there is more than one plaintiff, we will collect their information one at a time.
 fields:
   - code: |
       other_parties[i].name_fields(person_or_business='unsure')
@@ -555,6 +564,11 @@ fields:
       - I agree with part and disagree with part: agree_disagree
       - I don't know if this is true: dont_know
       - No response is required for this paragraph: response_not_required
+  - note: |
+      Provide an explanation that includes these statements: "I agree that ... but I disagree that ..."
+    show if:
+      variable: allegation_answers[i].choice
+      is: agree_disagree
   - Short explanation: allegation_answers[i].explanation
     input type: area
     maxlength: 500
@@ -664,51 +678,143 @@ subquestion: |
   If none of the defenses apply, you can continue without listing a defense.
 continue button field: no_defenses_check
 ---
-id: wants counterclaim
+id: counterclaims intro
 question: |
-  Do you want to file a counterclaim?
+  Counterclaim
 subquestion: |
-  A **counterclaim** is a claim that you make against the Plaintiff in this same case. To succeed, you will need to prove your counterclaim.
+  This part of the tool can help you figure out if you have a “counterclaim” against the plaintiff (the person or company that sued you).
 
-  **The filing fee for a counterclaim is $90.**
+  A counterclaim is a lawsuit the defendant files against the plaintiff in the original case. Many people do not have a counterclaim. 
+  
+  If you decide to file a counterclaim, you are asking the court to award YOU money. When you ask for money in a counterclaim, you are asking for "damages." 
+  
+  In a Superior Court debt answer case, you can ask for up to $10,000 in a counterclaim. There is a fee to file a counterclaim. As part of your counterclaim, you can ask to be reimbursed for your court filing fee. If you get public assistance or have a very low income, you can ask to waive the filing fee.
+  
+  You may want to talk to a lawyer if you are thinking about making a counterclaim. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) And for all kinds of plaintiffs, you need to have proof that you suffered real damages.
+  
+  **Counterclaim filing fee**
+  
+  - The fee is $90.
+  - If you have a low income or get public assistance, you can ask the court to waive the fee.
 
-  If you have a low income or receive public assistance, you can ask the court to waive the filing fee.
+  Tap Next for the next screen.
+  
+continue button field: counterclaims_intro
+---
+id: counterclaim debt collector
+question: |
+  % if len(other_parties) > 1:
+  Do you want to make a counterclaim against the third-party debt collectors?
+  % else:
+  Do you want to make a counterclaim against the third-party debt collector ${ other_parties[0] }?
+  % endif
+subquestion: |
+  Below is a list of some counterclaims that might apply to third-party debt collectors because of a law called the [Fair Debt Collection Practices Act (FDCPA).](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) These only apply to third-party debt collectors.
+
+  To be successful with a counterclaim, you would need to prove your claim to the court. Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
+
+  If you make a selection below, you can write more about the situation on the next screen.
 fields:
-  - Do you want to file a counterclaim against ${ other_parties.short_list(2) }?: wants_to_file_counterclaim
+  - Check any box that describes your situation, or check None: counterclaims
+    datatype: checkboxes
+    choices:
+      - "The plaintiffs are not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued.": no_notice
+      - "The plaintiffs are not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt.": false_statements
+      - "The plaintiffs are not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA).": harassment
+      - "The plaintiffs **owe me money for another reason**. (Tip: You can explain on the next screen.": plaintiff_owes_me_other_reason
+  - note: |
+      Notes about the FDCPA law:
+      
+      - The FDCPA applies only to third-party debt collectors, so one element of an FDCPA violation claim is to state that the debt collector is **not** the original creditor. However, this alone does not provide grounds for an FDCPA counterclaim.
+
+      - You may successfully claim harassment in a case like this if the plaintiff's behavior was **beyond** annoying. For example, they called you at late hours of the night or early morning, they used swear words, or they called you more than two times each day. Those are harassing behaviors.
+
+      - About getting notified by a debt collector: A debt collector is not required to tell you that they plan to file a lawsuit, but before they sue you, they need to have told you about your debt. (Source: [FTC website](https://www.ftc.gov/legal-library/browse/rules/fair-debt-collection-practices-act-text#809))
+---
+id: counterclaim other creditors
+question: |
+  Do you want to make a counterclaim?
+subquestion: |
+  To be successful with a counterclaim, you would need to prove your claim to the court.
+
+  Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
+fields:
+  - "Do you want to file a counterclaim against ${ other_parties.short_list(2) }?": wants_to_file_counterclaim
     datatype: yesnoradio
 ---
-# Think this needs some more explanation or some accordion help text (but written by a lawyer/someone with more knowledge)
-id: counterclaim details
+id: is plaintiff a third-party debt collector
 question: |
-  Tell us about your counterclaim
+  % if len(other_parties) > 1:
+  Are plaintiffs a third-party debt collector?
+  % else:
+  Is ${ other_parties[0] } a third-party debt collector?
+  % endif
 subquestion: |
-  Explain what the Plaintiff did that caused you to make a counterclaim.
+  We ask this question because it may affect what you might ask for in a counterclaim.
+  
+  A third-party debt collector generally is a person or a company that regularly collects debts owed to others, usually when those debts are past-due. They are **not** the [original creditor.](https://library.nclc.org/book/fair-debt-collection/133-original-creditors)
 
-  If you know what rule or law the Plaintiff broke, you can include it. For example, if you believe the Plaintiff violated the Fair Debt Collection Practices Act, you could say:
-
-  **"...in violation of the Fair Debt Collection Practices Act (FDCPA), 15 U.S. Code § 1692."**
+  Third-party debt collectors include collection agencies or lawyers who collect debts as part of their business. There are also companies that buy past-due debts from creditors or other businesses and then try to collect them. These third-party debt collectors are also called debt collection agencies, debt collection companies or debt buyers.
+  
 fields:
-  - How much money do you want to ask for in your counterclaim?: counterclaims_amount
-    datatype: currency
-    min: 0
-
-  - What did the Plaintiff do that caused you to make a counterclaim?: counterclaims_description
-    input type: area
-    maxlength: 1200
-
-  - What rule or law did the Plaintiff break, if you know?: counterclaim_law
-    input type: area
-    required: false
-    maxlength: 500
-validation code: |
-  counterclaim_details = True
+  - Are any of the plaintiffs a **third-party debt collector**?: sued_by_collection_agency
+    input type: radio
+    choices:
+      - Yes: True
+      - No: False
+      - I don't know: None
 ---
-reconsider: True
-code: |
-  merged_counterclaims_text = counterclaims_description.strip()
+id: counterclaim amount
+question: |
+  Counterclaim details
+subquestion: |
+  % if sued_by_collection_agency:
+  % if len(counterclaims.true_values()) > 0:
+  You've selected a reason(s) for filing a counterclaim against ${ other_parties.short_list(2) }:
+  
+  % for item in counterclaims.true_values():
+  - **${ counterclaims_terms[item] }**
+  
+  % endfor
+  % endif
+  % endif
+  
+fields:
+  - note: |
+        Remember, when you ask for money in a counterclaim, you are asking for "damages." In small claims court, the total amount must be $10,000 or less. As part of your counterclaim against the defendant, you can ask to be reimbursed for your court filing fee. (the fee is $90.)
+  - "I want to ask the court for this amount of money in my counterclaim": counterclaims_amount
+    datatype: currency
+  - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
+    input type: area
+    maxlength: 800
+  - note: |
+      If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
 
-  if defined('counterclaim_law') and counterclaim_law.strip():
-    merged_counterclaims_text += " " + counterclaim_law.strip()
+      Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
+validation code: |
+  if counterclaims_amount > 10090:
+    validation_error(word("A counterclaim in small claims court can be between $1 and $10,000. You can also include your filing fee."), field="counterclaims_amount")
+
+---
+id: if no counterclaim
+question: |
+  No counterclaim
+subquestion: |
+  We will not include a counterclaim in your answer.
+
+  Tap Next to continue.
+continue button field: no_counterclaims
+---
+# "!!omap" makes these terms ordered: 
+# their order here will be their same order when shown to users.
+variable name: counterclaims_terms
+data: !!omap
+  - plaintiff_owes_money: "I believe the plaintiff owes me money."
+  - plaintiff_not_original_creditor: "The plaintiff is not the original creditor or lender of the money, and they violated the Fair Debt Collection Practices Act (FDCPA)."
+  - no_notice: "The plaintiff is not the original creditor or lender of the money, and I didn't get a letter from them alerting me to my debt before I was sued."
+  - false_statements: "The plaintiff is not the original creditor or lender of the money, and they made statements that were not true or were misleading about the debt."
+  - harassment: "The plaintiff is not the original creditor or lender of the money, and they harassed me and they violated the Fair Debt Collection Practices Act (FDCPA)."
+  - plaintiff_owes_me_other_reason: "The plaintiff owes me money."
 ---
 id: wants counterclaim other relief
 question: |
@@ -804,10 +910,17 @@ code: |
 id: living expenses versus income
 question: |
   Are your living expenses more than your income?
-subquestion: |
-  Are the reasonable living expenses for you and your dependents, such as family members who live with you, **more than your income after taxes**?
 fields:
-  - no label: living_expenses_more_than_income
+  - "Are the reasonable living expenses for you and your dependents, such as family members who live with you, **more than your income after taxes**?": living_expenses_more_than_income
+    datatype: yesnoradio
+---
+id: wants Financial Disclosure Affidavit
+question: |
+  Financial Disclosure Affidavit
+subquestion: |
+  Do you want to share info about your household income and expenses with the court by filling out a Financial Disclosure Affidavit form?
+fields:
+  - "Do you want to fill out a Financial Disclosure Affidavit form?": wants_financial_disclosure_affidavit
     datatype: yesnoradio
 ---
 id: other exempt income reason
@@ -903,6 +1016,18 @@ subquestion: |
   Tap Next to continue.
 continue button field: certificate_of_service_transition
 ---
+id: combining individual counterclaim selections and the self-typed explanation
+code: |
+  if sued_by_collection_agency:
+    merged_counterclaims_text = ""
+    for item in counterclaims.true_values():
+      merged_counterclaims_text += counterclaims_terms[item] + "\n"
+    merged_counterclaims_text += counterclaims_description
+  if not sued_by_collection_agency:
+    merged_counterclaims_text = counterclaims_description
+  get_merged_counterclaims = True
+reconsider: True
+---
 # precheck documents served for the reusable general Certificate of Service to include.
 # logic for which forms are prechecked stays in the Debt Answer interview.
 reconsider: True
@@ -959,6 +1084,8 @@ subquestion: |
   Click the image to open it in a new tab. Use the Edit answers button if you need to make changes.
 
   ${ action_button_html(url_action('review_superior_court_debt_answer'), label='<i class="fa-solid fa-pencil"></i> Edit your answers', color='info') }
+
+  **Remember to come back to this window to continue and sign your form.**
 
   Before you sign or download, remember:
 
