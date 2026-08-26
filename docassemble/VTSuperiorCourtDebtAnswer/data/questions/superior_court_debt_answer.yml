@@ -13,7 +13,7 @@ metadata:
   title: Superior Court debt answer
   short title: Superior Court debt answer
   description: >-
-    Repond to a debt collection Complaint filed in the Civil Division of Vermont Superior Court.
+    Respond to a debt collection Complaint filed in the Civil Division of Vermont Superior Court.
   can_I_use_this_form: |
     Use this tool if you received a Complaint about a debt in the Civil Division of Vermont Superior Court, and your Summons says you have 21 days to answer.
   before_you_start: |
@@ -22,16 +22,16 @@ metadata:
   estimated_completion_minutes: 30
   estimated_completion_delta: 10
   LIST_topics: 
-    - "MO-10-00-00-00"
+    - "MO-12-01-09-00"
   tags:
-    - "MO-10-00-00-00"
+    - "MO-12-01-09-00"
   authors:
     - K. Surette, VTCourtForms / Legal Services Vermont
     - K. McGuire, Lemma Legal
   original_form:
   original_form_published_on:
-  help_page_url:
-  help_page_title:
+  help_page_url: https://vtlawhelp.org/defend-yourself-court
+  help_page_title: Defend yourself in court against debt collection
   allowed_courts: []
   typical_role: "defendant"
   languages:
