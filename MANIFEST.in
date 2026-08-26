@@ -1,5 +1,5 @@
 include README.md
-graft docassemble/VTSmallClaimsAnswer/data
+graft docassemble/VTSuperiorCourtDebtAnswer/data
 recursive-exclude * *.egg-info
 recursive-exclude .git *
 recursive-exclude venv *
