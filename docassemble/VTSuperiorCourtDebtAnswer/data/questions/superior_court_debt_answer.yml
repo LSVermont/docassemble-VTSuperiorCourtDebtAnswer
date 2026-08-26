@@ -511,7 +511,7 @@ fields:
 code: |
   trial_court_index = all_courts.matching_courts_in_county(county_name=user_selected_county, search_columns=['division_abbr'], search_string=trial_court_division)[0][0]
 ---
-id: name and address of opposing parties
+id: name of opposing parties
 sets:
   - other_parties[i].name.first
   - other_parties[i].name.last
@@ -519,7 +519,7 @@ sets:
   - other_parties[i].name.suffix
   - other_parties[i].debt_answer_name_complete
 question: |
-  Name and address of **${ ordinal(i) }** plaintiff in this case
+  Name of **${ ordinal(i) }** plaintiff in this case
 subquestion: |
   A plaintiff is the person, company, or organization suing you. There may be more than one plaintiff. Look at the Complaint for this information.
 
@@ -558,10 +558,12 @@ subquestion: |
   Read paragraph ${ i + 1 } of the Complaint before answering.
 
   - If you agree with everything in the Complaint, the Plaintiff may be able to get a judgment without a hearing.
-  - If you do not recall a statement as 100% true, choose **I don't know**. If you have a reason to doubt it, choose **I disagree**.
+  - If you do not recall a statement as 100% true, choose **I don't know**.
+  - If you have a reason to doubt it, choose **I disagree**.
   - If a paragraph only describes the company or what the company did, it may be appropriate to choose **I don't know**.
+  - If you reported the wrong total number of paragraphs in the complaint, don't worry. At the end you can edit the number and your responses.
 fields:
-  - Your response: allegation_answers[i].choice
+  - Your response to Paragraph ${ i + 1 }: allegation_answers[i].choice
     input type: radio
     choices:
       - I agree: agree
@@ -687,13 +689,13 @@ id: counterclaims intro
 question: |
   Counterclaim
 subquestion: |
-  This part of the tool can help you figure out if you have a “counterclaim” against the plaintiff (the person or company that sued you).
+  This part of the tool can help you figure out if you have a “counterclaim” against ${ other_parties.short_list(2) }.
 
   A counterclaim is a lawsuit the defendant files against the plaintiff in the original case. Many people do not have a counterclaim. 
   
   If you decide to file a counterclaim, you are asking the court to award YOU money. When you ask for money in a counterclaim, you are asking for "damages." 
   
-  In a Superior Court debt answer case, you can ask for up to $10,000 in a counterclaim. There is a fee to file a counterclaim. As part of your counterclaim, you can ask to be reimbursed for your court filing fee. If you get public assistance or have a very low income, you can ask to waive the filing fee.
+  There is a fee to file a counterclaim. As part of your counterclaim, you can ask to be reimbursed for your court filing fee. If you get public assistance or have a very low income, you can ask to waive the filing fee.
   
   You may want to talk to a lawyer if you are thinking about making a counterclaim. This is because there are some [laws that only apply to how debt collectors do business.](https://files.consumerfinance.gov/f/documents/cfpb_fair-debt-collection-practices-act-fdcpa-procedures_2022-12.pdf) And for all kinds of plaintiffs, you need to have proof that you suffered real damages.
   
@@ -786,7 +788,7 @@ subquestion: |
   
 fields:
   - note: |
-        Remember, when you ask for money in a counterclaim, you are asking for "damages." In small claims court, the total amount must be $10,000 or less. As part of your counterclaim against the defendant, you can ask to be reimbursed for your court filing fee. (the fee is $90.)
+        Remember, when you ask for money in a counterclaim, you are asking for "damages." As part of your counterclaim against the defendant, you can ask to be reimbursed for your court filing fee. (You can include the $90 fee in your total.)
   - "I want to ask the court for this amount of money in my counterclaim": counterclaims_amount
     datatype: currency
   - "Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.": counterclaims_description
@@ -796,10 +798,6 @@ fields:
       If you do not want to file a counterclaim, tap the Undo button and go back to change your answer.
 
       Learn more about counterclaims on [NCLC’s Surviving Debt website.](https://library.nclc.org/book/surviving-debt/common-counterclaims-raise)
-validation code: |
-  if counterclaims_amount > 10090:
-    validation_error(word("A counterclaim in small claims court can be between $1 and $10,000. You can also include your filing fee."), field="counterclaims_amount")
-
 ---
 id: if no counterclaim
 question: |
@@ -834,9 +832,9 @@ id: counterclaim relief item
 question: |
   What else do you want the court to order on your counterclaim?
 subquestion: |
-  Add any other relief you want besides the money amount. You can add requests one at a time.
+  Add any other relief you want besides the money amount. Add your requests one at a time.
 fields:
-  - Other relief: counterclaim_reliefs[i].name
+  - ${ capitalize(ordinal(i)) } other relief: counterclaim_reliefs[i].name
     input type: area
     maxlength: 400
 validation code: |
@@ -999,22 +997,22 @@ fields:
 ---
 id: notice of appearance transition
 question: |
-  Let’s start the notice of appearance form questions
+  Let’s start the Notice of Appearance form questions
 subquestion: |
-  A notice of appearance tells the court and the other parties how to contact you and that you are representing yourself in this case.
+  A Notice of Appearance tells the court and the other parties how to contact you and that you are representing yourself in this case.
   
-  You’ve already answered some of the questions that are asked in the notice of appearance form. Now we’ll work through the remaining questions.
+  You’ve already answered some of the questions that are asked in the Notice of Appearance form. Now we’ll work through the remaining questions.
 
   Tap Next to continue.
 continue button field: notice_of_appearance_transition
 ---
 id: certificate of service transition
 question: |
-  Let’s start the certificate of service form questions
+  Let’s start the Certificate of Service form questions
 subquestion: |
   Next, we will ask how you will send your completed court forms to the other party.
 
-  We will use your answers to complete a certificate of service form. This form tells the court which documents you sent, who you sent them to, and how you sent them.
+  We will use your answers to complete a Certificate of Service form. This form tells the court which documents you sent, who you sent them to, and how you sent them.
 
   We have already selected the documents this interview is creating for you. You can change that list or add other documents if needed.
 
