@@ -215,6 +215,10 @@ code: |
   certificate_of_service_prechecked_documents
   interview_order_general_certificate_of_service
 
+  # make sure these variables are defined for the Answer and Counterclaim preview/download
+  any_allegation_disputed
+  merged_counterclaims_text
+  
   superior_court_debt_answer_interview_order = True
 ---
 mandatory: True
@@ -1043,9 +1047,6 @@ code: |
   if wants_to_file_counterclaim:
     certificate_of_service_prechecked_documents.append("Counterclaim")
 
-  if defined('wants_to_fill_out_fee_waiver_now') and wants_to_fill_out_fee_waiver_now:
-    certificate_of_service_prechecked_documents.append("Application to Waive Filing Fees and Service Costs")
-
   if (
     len(has_exempt_income_state.true_values()) > 0
     or len(has_exempt_income_other.true_values()) > 0
@@ -1069,12 +1070,11 @@ question: |
 fields:
   - This is how your name will appear under your signature.: printed_signature
     default: ${ users[0].name }
-  - Date of your signature for these forms: signature_date
-    datatype: date
-    required: False
-    default: ${ today() }
-  - note: |
-      Tap Next to choose how to sign. AssemblyLine lets you sign on this computer, send a link or QR code to a phone to sign there, use a typed /s/ signature, or choose not to sign online and sign the printed forms later.
+---
+id: gather signature
+question: |
+  Sign your forms
+signature: user.signature
 ---
 id: preview superior court debt answer
 question: |
