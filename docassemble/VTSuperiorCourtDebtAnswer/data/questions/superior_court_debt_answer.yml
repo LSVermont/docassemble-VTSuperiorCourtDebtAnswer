@@ -165,7 +165,6 @@ code: |
     if len(counterclaims.true_values()) == 0:
       no_counterclaims
     else:
-      get_merged_counterclaims
       counterclaims_amount
   else:
     if wants_to_file_counterclaim:
@@ -1024,16 +1023,19 @@ subquestion: |
 continue button field: certificate_of_service_transition
 ---
 id: combining individual counterclaim selections and the self-typed explanation
+depends on:
+  - sued_by_collection_agency
+  - counterclaims
+  - counterclaims_description
 code: |
+  merged_counterclaims_text = ""
+
   if sued_by_collection_agency:
-    merged_counterclaims_text = ""
     for item in counterclaims.true_values():
       merged_counterclaims_text += counterclaims_terms[item] + "\n"
+
+  if counterclaims_description.strip():
     merged_counterclaims_text += counterclaims_description
-  if not sued_by_collection_agency:
-    merged_counterclaims_text = counterclaims_description
-  get_merged_counterclaims = True
-reconsider: True
 ---
 # precheck documents served for the reusable general Certificate of Service to include.
 # logic for which forms are prechecked stays in the Debt Answer interview.
