@@ -1,13 +1,13 @@
 ---
 include:
-  - docassemble.VTFinancialDisclosure:VT_financial_disclosure_to_include.yml
-  - docassemble.VTDisclosureOfExemptIncome:disclosure_of_exempt_income_to_include.yml
-  - docassemble.VTFeeWaiverWithIncludeYMLFile:VT_fee_waiver_to_include.yml
-  - docassemble.VTNoticeOfAppearance:VTNoticeOfAppearance_to_include.yml
-  - docassemble.VTCertificateOfServiceGeneral:general_certificate_of_service_to_include.yml
   - docassemble.AssemblyLine:assembly_line.yml
   - docassemble.ALToolbox:phone-number-validation.yml
   - docassemble.VTSharedYMLFile:VTSharedYMLFile.yml
+  - docassemble.VTFinancialDisclosure:VT_financial_disclosure_to_include.yml
+  - docassemble.VTDisclosureOfExemptIncome:disclosure_of_exempt_income_to_include.yml
+  - docassemble.VTFeeWaiverWithIncludeYMLFile:VT_fee_waiver_to_include.yml
+  - docassemble.VTNoticeOfAppearance:VTNoticeOfAppearance_Civil_to_include.yml
+  - docassemble.VTCertificateOfServiceGeneral:general_certificate_of_service_to_include.yml
 ---
 metadata:
   title: Superior Court debt answer
@@ -207,7 +207,7 @@ code: |
 
   nav.set_section('notice_of_appearance')
   notice_of_appearance_transition
-  interview_order_a_notice_of_appearance_self_rep
+  interview_order_a_civil_notice_of_appearance_self_rep
 
   nav.set_section('certificate_of_service')
   certificate_of_service_transition
@@ -225,10 +225,10 @@ id: main order superior court debt answer
 code: |
   al_intro_screen
   superior_court_debt_answer_interview_order
+  signature_date
   nav.set_section("review_superior_court_debt_answer")
   superior_court_debt_answer_preview_question
   nav.set_section("sign")
-  signature_date
   al_form_requires_digital_signature = False
   basic_questions_signature_flow
   nav.set_section("get_docs")
@@ -1022,21 +1022,6 @@ subquestion: |
   Tap Next to continue.
 continue button field: certificate_of_service_transition
 ---
-id: combining individual counterclaim selections and the self-typed explanation
-depends on:
-  - sued_by_collection_agency
-  - counterclaims
-  - counterclaims_description
-code: |
-  merged_counterclaims_text = ""
-
-  if sued_by_collection_agency:
-    for item in counterclaims.true_values():
-      merged_counterclaims_text += counterclaims_terms[item] + "\n"
-
-  if counterclaims_description.strip():
-    merged_counterclaims_text += counterclaims_description
----
 # precheck documents served for the reusable general Certificate of Service to include.
 # logic for which forms are prechecked stays in the Debt Answer interview.
 reconsider: True
@@ -1138,8 +1123,8 @@ objects:
   - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[superior_court_debt_next_steps, superior_court_debt_answer_attachment, superior_court_debt_counterclaim_attachment, a_notice_of_appearance_self_rep_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment, certificate_of_service_attachment], filename="superior_court_debt_answer", title="All forms to download", enabled=True)
-  - al_court_bundle: ALDocumentBundle.using(elements=[superior_court_debt_answer_attachment, superior_court_debt_counterclaim_attachment, a_notice_of_appearance_self_rep_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment, certificate_of_service_attachment], filename="superior_court_debt_answer", title="All forms to deliver to court", enabled=True)
+  - al_user_bundle: ALDocumentBundle.using(elements=[superior_court_debt_next_steps, superior_court_debt_answer_attachment, superior_court_debt_counterclaim_attachment, a_civil_notice_of_appearance_self_rep_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment, certificate_of_service_attachment], filename="superior_court_debt_answer", title="All forms to download", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[superior_court_debt_answer_attachment, superior_court_debt_counterclaim_attachment, a_civil_notice_of_appearance_self_rep_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment, certificate_of_service_attachment], filename="superior_court_debt_answer", title="All forms to deliver to court", enabled=True)
 ---
 attachment:
   name: Superior Court debt answer
@@ -1165,3 +1150,17 @@ attachment:
   docx template file: superior_court_debt_next_steps.docx
   tagged pdf: True
 ---
+id: combining individual counterclaim selections and the self-typed explanation
+depends on:
+  - sued_by_collection_agency
+  - counterclaims
+  - counterclaims_description
+code: |
+  merged_counterclaims_text = ""
+
+  if sued_by_collection_agency:
+    for item in counterclaims.true_values():
+      merged_counterclaims_text += counterclaims_terms[item] + "\n"
+
+  if counterclaims_description.strip():
+    merged_counterclaims_text += counterclaims_description

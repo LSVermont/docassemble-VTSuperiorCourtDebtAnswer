@@ -14,7 +14,7 @@ authors = [
 ]
 dependencies = [
     "docassemble.ALToolbox @ git+https://github.com/suffolklitlab/docassemble-ALToolbox.git@main",
-    "docassemble.AssemblyLine>=4.7.0",
+    "docassemble.AssemblyLine>=4.8.0",
     "docassemble.VTCertificateOfServiceGeneral @ git+https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral.git@main",
     "docassemble.VTDisclosureOfExemptIncome @ git+https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome.git@main",
     "docassemble.VTFeeWaiverWithIncludeYMLFile @ git+https://github.com/LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile.git@main",
