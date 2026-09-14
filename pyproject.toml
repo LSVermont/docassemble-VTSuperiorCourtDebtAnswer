@@ -13,7 +13,6 @@ authors = [
     { name = "Legal Services Vermont and Lemma Legal", email = "ksurette@legalservicesvt.org" },
 ]
 dependencies = [
-    "docassemble.ALToolbox @ git+https://github.com/suffolklitlab/docassemble-ALToolbox.git@main",
     "docassemble.AssemblyLine>=4.8.0",
     "docassemble.VTCertificateOfServiceGeneral @ git+https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral.git@main",
     "docassemble.VTDisclosureOfExemptIncome @ git+https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome.git@main",
