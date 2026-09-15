@@ -279,40 +279,40 @@ subquestion: |
   This tool is for creating an answer for Superior Court. We have a different tool for Small Claims Court.
 
   The Complaint might say something like:
-  
-  Plaintiff respectfully requests this court enter judgment against Defendant awarding Plaintiff the following:
-  
-  - $xx,xxx, which is the amount due and owing;
-  - Court costs; and
-  - Such other and further relief that the Court deems proper.
 
+  <div style="margin-left:30px">
+  <p>Plaintiff respectfully requests this court enter judgment against Defendant awarding Plaintiff the following:</p>
+  <ul>
+  <li>$xx,xxx, which is the amount due and owing;</li>
+  <li>Court costs; and</li>
+  <li>Such other and further relief that the Court deems proper.</li></ul></div>
 fields:
   - "Did you get a document called a **Complaint** that talks about a debt that a person or business thinks you owe?": got_debt_complaint
     datatype: yesnoradio
-  - note: |
-      It doesn't sound like this is the right tool for you.
-    show if:
-      variable: got_debt_complaint
-      is: False
+#  - note: |
+#      It doesn't sound like this is the right tool for you.
+#    show if:
+#      variable: got_debt_complaint
+#      is: False
   - "Does it say **Small Claims Complaint**?": small_claims_complaint
     datatype: yesnoradio
     show if:
       variable: got_debt_complaint
       is: True
-  - note: |
-      You said that the document says **Small Claims Complaint**. Respond to a Small Claims Complaint using our tool which can be found [here](https://www.vtlawhelp.org/cfp/respond-small-claims-complaint).
-    show if:
-      variable: small_claims_complaint
-      is: True
+#  - note: |
+#      You said that the document says **Small Claims Complaint**. Respond to a Small Claims Complaint using our tool which can be found [here](https://www.vtlawhelp.org/cfp/respond-small-claims-complaint).
+#    show if:
+#      variable: small_claims_complaint
+#      is: True
 ---
 id: screening money only
 question: |
   What is the Plaintiff asking for?
-subquestion: |
-  This tool is only for lawsuits involving money.
 fields:
   - "Is the Plaintiff asking the court for anything that is **not money**?": plaintiff_requests_nonmoney
     datatype: yesnoradio
+  - note: |
+      This tool is only for lawsuits involving money.
 ---
 id: screening summons response days
 question: |
@@ -354,11 +354,11 @@ subquestion: |
   % if ((defined('small_claims_complaint') and small_claims_complaint) or (defined('has_docket_number') and has_docket_number and defined('docket_number_has_cv') and not docket_number_has_cv)):
   This tool is for Superior Court debt cases, not Small Claims Court cases.
 
-  You can find information about Small Claims Complaints and use our tool to respond to a Small Claims Complaint [here](https://www.vtlawhelp.org/cfp/respond-small-claims-complaint).
+  You can find information about Small Claims Complaints and use our tool to respond to a Small Claims Complaint [here](https://www.vtlawhelp.org/vtcourtforms/small-claims-answer).
 
   If you are not sure if this is a Small Claims Court case or a case in Superior Court, call the court and ask!
   % elif defined('plaintiff_requests_nonmoney') and plaintiff_requests_nonmoney:
-  Ask a lawyer if a complaint is asking for money and something else. If you have a low income, contact Legal Services Vermont. We may be able to give you quick advice or a referral.
+  This tool is only for lawsuits involving money. Ask a lawyer if the Complaint is asking for something besides money. If you have a low income, contact Legal Services Vermont. We may be able to give you quick advice or a referral.
   % elif defined('summons_response_days') and summons_response_days != "21":
   This tool can only help you if you get a Summons that says you have **21 days** to respond.
   % else:
@@ -836,6 +836,8 @@ question: |
   What else do you want the court to order on your counterclaim?
 subquestion: |
   Add any other relief you want besides the money amount. Add your requests one at a time.
+
+  You might start your sentence with: "Order the Plaintiff to..."
 fields:
   - ${ capitalize(ordinal(i)) } other relief: counterclaim_reliefs[i].name
     input type: area

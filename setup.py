@@ -53,7 +53,7 @@ setup(name='docassemble.VTSuperiorCourtDebtAnswer',
       license='MIT',
       url='https://VTLawHelp.org',
       packages=find_namespace_packages(),
-      install_requires=['docassemble.AssemblyLine>=4.8.0', 'docassemble.VTCertificateOfServiceGeneral @ git+https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral.git@main', 'docassemble.VTDisclosureOfExemptIncome @ git+https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome.git@main', 'docassemble.VTFeeWaiverWithIncludeYMLFile @ git+https://github.com/LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile.git@main', 'docassemble.VTFinancialDisclosure @ git+https://github.com/LSVermont/docassemble-VTFinancialDisclosure.git@main', 'docassemble.VTNoticeOfAppearance @ git+https://github.com/LSVermont/docassemble-VTNoticeOfAppearance.git@main', 'docassemble.VTSharedYMLFile @ git+https://github.com/LSVermont/docassemble-VTSharedYMLFile.git@main'],
+      install_requires=['docassemble.AssemblyLine @ git+https://github.com/SuffolkLITLab/docassemble-AssemblyLine.git@main', 'docassemble.VTDisclosureOfExemptIncome @ git+https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome.git@main', 'docassemble.VTFinancialDisclosure @ git+https://github.com/LSVermont/docassemble-VTFinancialDisclosure.git@main', 'docassemble.VTNoticeOfAppearance @ git+https://github.com/LSVermont/docassemble-VTNoticeOfAppearance.git@main'],
       zip_safe=False,
       package_data=find_package_data(where='docassemble/VTSuperiorCourtDebtAnswer/', package='docassemble.VTSuperiorCourtDebtAnswer'),
      )
