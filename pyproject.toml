@@ -14,12 +14,9 @@ authors = [
 ]
 dependencies = [
     "docassemble.AssemblyLine>=4.8.0",
-    "docassemble.VTCertificateOfServiceGeneral @ git+https://github.com/LSVermont/docassemble-VTCertificateOfServiceGeneral.git@main",
     "docassemble.VTDisclosureOfExemptIncome @ git+https://github.com/LSVermont/docassemble-VTDisclosureOfExemptIncome.git@main",
-    "docassemble.VTFeeWaiverWithIncludeYMLFile @ git+https://github.com/LSVermont/docassemble-VTFeeWaiverWithIncludeYMLFile.git@main",
     "docassemble.VTFinancialDisclosure @ git+https://github.com/LSVermont/docassemble-VTFinancialDisclosure.git@main",
     "docassemble.VTNoticeOfAppearance @ git+https://github.com/LSVermont/docassemble-VTNoticeOfAppearance.git@main",
-    "docassemble.VTSharedYMLFile @ git+https://github.com/LSVermont/docassemble-VTSharedYMLFile.git@main",
 ]
 license = "MIT"
 license-files = [
