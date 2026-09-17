@@ -291,10 +291,10 @@ id: main order superior court debt answer
 code: |
   al_intro_screen
   superior_court_debt_answer_interview_order
-  signature_date
   nav.set_section("review_superior_court_debt_answer")
   superior_court_debt_answer_preview_question
   nav.set_section("sign")
+  signature_date
   al_form_requires_digital_signature = False
   basic_questions_signature_flow
   nav.set_section("get_docs")
