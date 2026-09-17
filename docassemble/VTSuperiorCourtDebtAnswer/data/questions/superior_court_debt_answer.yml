@@ -1185,7 +1185,7 @@ progress: 100
 objects:
   - superior_court_debt_answer_attachment: ALDocument.using(title="Answer", filename="superior_court_debt_answer", enabled=True, has_addendum=False)
   - superior_court_debt_counterclaim_attachment: ALDocument.using(title="Counterclaim", filename="superior_court_debt_counterclaim", enabled=wants_to_file_counterclaim, has_addendum=False)
-  - superior_court_debt_next_steps: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="superior_court_debt_next_steps.pdf", enabled=True, has_addendum=False)
+  - superior_court_debt_next_steps: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="superior_court_debt_next_steps", enabled=True, has_addendum=False)
   - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False)
   - financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form", filename="VT_financial_disclosure.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
   - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
