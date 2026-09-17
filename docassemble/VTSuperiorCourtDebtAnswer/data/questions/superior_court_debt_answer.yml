@@ -1217,6 +1217,20 @@ attachment:
   skip undefined: True
   docx template file: superior_court_debt_next_steps.docx
   tagged pdf: True
+  fields:
+      - "date_received": ${ date_received }
+      - "answer_deadline": ${ answer_deadline }
+      - "address_county": ${ trial_court.address.county }
+      - "division": ${ trial_court.division }
+      - "name": ${ trial_court }
+      - "address_address": ${ trial_court.address.address }
+      - "address_unit": ${ trial_court.address.unit }
+      - "address_city": ${ trial_court.address.city }
+      - "address_state": ${ trial_court.address.state }
+      - "address_zip": ${ trial_court.address.zip }
+      - "arbitrary_attribute": ${ trial_court.arbitrary_attribute }
+      - "phone": ${ trial_court.phone }
+      - "email": ${ trial_court.email }
 ---
 id: combining individual counterclaim selections and the self-typed explanation
 depends on:
