@@ -1409,7 +1409,12 @@ review:
       </strong>
 
       Check any box that describes your situation, or check None: ${ showifdef('counterclaims') }
-  - Edit: wants_to_file_counterclaim
+  - Edit:
+      - wants_to_file_counterclaim
+      - follow up:
+        - counterclaims_amount
+      - recompute:
+        - superior_court_debt_counterclaim_attachment.enabled
     button: |
       **Do you want to make a counterclaim?**
 
