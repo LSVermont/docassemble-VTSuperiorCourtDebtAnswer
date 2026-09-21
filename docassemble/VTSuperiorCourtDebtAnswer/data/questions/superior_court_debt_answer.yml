@@ -9,6 +9,65 @@ include:
   - docassemble.VTNoticeOfAppearance:VTNoticeOfAppearance_Civil_to_include.yml
   - docassemble.VTCertificateOfServiceGeneral:general_certificate_of_service_to_include.yml
 ---
+depends on:
+ - defenses['dont_owe']
+ - defenses['dont_know']
+ - defenses['already_paid']
+ - defenses['amount_doesnt_match']
+ - defenses['do_not_recognize']
+ - defenses['bankruptcy']
+ - defenses['llc_debt']
+ - defenses['not_orginal_creditor']
+ - defenses['long_time_since_debt']
+ - defenses['long_time_since_payment']
+ - defenses['other_reason']
+id: agrees with the complaint
+question: |
+  You agree with the complaint
+subquestion: |
+  On the last screen, you did not choose any "defenses" to the complaint against you. That means you agree with the amount you owe and who you owe. If that is not true, go back and choose a defense instead.
+
+  **When you agree with the complaint**: When you agree, the court may make a judgment saying that you owe the debt. Depending on your financial situation, you may have to pay the money back. You can ask the court for installment payments, but it is not certain that they will allow it.
+
+fields:
+  - note: |
+      If the court finds you need to pay the debt and enters a judgment against you, what do you plan to do?
+  
+  - "Check one of the following.": payment
+    datatype: radio
+    choices:
+      - "I agree to pay the amount in full within 30 days. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year???????).": agrees_to_pay_in_full
+      - "I cannot pay the full amount at one time. I'd like to ask the court for installment payments.": agrees_to_pay_installments
+      - "I want to pay in a different way": agrees_to_pay_other
+  - "I can pay this amount": agrees_to_pay_installments_amount
+    datatype: currency
+    min: 0
+    js show if: |
+      val("payment") == "agrees_to_pay_installments"
+  - Every: agrees_to_pay_installments_period
+    datatype: radio
+    choices:
+      - Week
+      - Two weeks
+      - Month
+      - Two months
+    js show if: |
+      val("payment") == "agrees_to_pay_installments"
+  - Starting on this date: agrees_to_pay_installments_start_date
+    datatype: date
+    js show if: |
+      val("payment") == "agrees_to_pay_installments"
+  - Describe the other way: agrees_to_pay_other_description
+    maxlength: 200
+    js show if: |
+      val("payment") == "agrees_to_pay_other"
+
+continue button field: agreeing_with_complaint_and_payments
+---
+code: |
+  if defined('payment') and payment == 'agrees_to_pay_in_full':
+    pay_in_full_date = today().plus(days=30)
+---
 id: signature choice
 decoration: file-signature
 question: |
@@ -223,6 +282,7 @@ code: |
     disagrees_additional_explanation
   else:
     no_defenses_check
+    agreeing_with_complaint_and_payments
   set_progress(62)
 
   nav.set_section('counterclaims')
@@ -382,7 +442,7 @@ fields:
 ---
 id: screening summons response days
 question: |
-  The Summons should include a response time.
+  The Summons
 fields:
   - "How many days does the Summons say you have to respond?": summons_response_days
     input type: radio
@@ -517,8 +577,10 @@ id: any other users
 question: |
   Are there any other ${ user_role }s named in the case?
 subquestion: |
-  Tip: Look at your court papers. They will list the defendants.
-yesno: users.there_is_another
+  Tip: Look at your court papers. They will list the ${ user_role }s.
+fields:
+  - no label: users.there_is_another
+    datatype: yesnoradio
 ---
 code: |
   users[i].name.first
@@ -625,6 +687,8 @@ question: |
   Paragraph ${ i + 1 }
 subquestion: |
   Read paragraph ${ i + 1 } of the Complaint before answering.
+
+  Notes:
 
   - If you agree with everything in the Complaint, the Plaintiff may be able to get a judgment without a hearing.
   - If you do not recall a statement as 100% true, choose **I don't know**.
@@ -753,6 +817,39 @@ subquestion: |
 
   If none of the defenses apply, you can continue without listing a defense.
 continue button field: no_defenses_check
+---
+---
+id: disagrees with the complaint
+depends on:
+ - defenses['dont_owe']
+ - defenses['dont_know']
+ - defenses['already_paid']
+ - defenses['amount_doesnt_match']
+ - defenses['do_not_recognize']
+ - defenses['bankruptcy']
+ - defenses['llc_debt']
+ - defenses['not_orginal_creditor']
+ - defenses['long_time_since_debt']
+ - defenses['long_time_since_payment']
+ - defenses['other_reason']
+question: |
+  Do you want to add any more details?
+subquestion: |
+  So far, this is the text we have to explain your defense(s). You can explain a little more if you want.
+  
+  **I disagree that I owe the plaintiff the full amount claimed in the complaint and I request a court hearing.**
+
+  % for item in defenses.true_values():
+  - **${ defenses_terms[item] }**
+  
+  % endfor
+fields:
+  - "More explanation (optional)": disagrees_additional_explanation
+    input type: area
+    required: false
+    maxlength: 600
+---
+
 ---
 id: counterclaims intro
 question: |
@@ -890,11 +987,11 @@ data: !!omap
 ---
 id: wants counterclaim other relief
 question: |
-  Any other relief?
+  Do you want to ask for any other relief on your counterclaim?
 subquestion: |
   This is for requests other than the amount of money you already entered.
 fields:
-  - "Do you want to ask for any other relief on your counterclaim?": wants_counterclaim_other_relief
+  - no label: wants_counterclaim_other_relief
     datatype: yesnoradio
 ---
 id: counterclaim relief item
@@ -1028,19 +1125,28 @@ code: |
   else:
     VT_fee_waiver_attachment.enabled = False
 ---
+#What relief do you want?
+#o	If disagreed to something in complaint: Dismiss the claims against me.
+#o	If agreed to everything in complaint: I want to start making payments by installments, or I want to pay in full, or type in what you want to do.
+#o	If judgement proof: Dismiss the claims against me.
+#o	If judgement proof now, but not in near future, ...
+
+
 id: wants other relief
 question: |
   Do you want to ask the court for anything else?
 subquestion: |
-  Besides dismissing the Plaintiff's Complaint and/or filing a Counterclaim, do you want any other **relief** from the court?
-
-  We will collect your relief requests one at a time.
+  If you disagree with the plaintiff's complaint, do you want any other **relief** from the court **besides** dismissing the complaint and/or filing a counterclaim?
 
   Examples of relief might include asking the court to:
 
   - order the plaintiff to stop a particular action;
   - award another type of relief related to your case;
   - make another order you believe is appropriate.
+
+  We will collect your relief requests one at a time.
+
+  If you agree with the complaint, you might select None.
 
 fields:
   - Select an option: wants_other_relief_choices
@@ -1113,10 +1219,6 @@ code: |
     certificate_of_service_prechecked_documents.append("Financial Disclosure Affidavit")
 ---
 code: |
-  if defined('payment') and payment == 'agrees_to_pay_in_full':
-    pay_in_full_date = today().plus(days=30)
----
-code: |
   signature_fields = ['users[0].signature']
 ---
 id: signature date
@@ -1182,9 +1284,16 @@ subquestion: |
 progress: 100
 ---
 ############ Documents ############
+---
+code: |
+  if defined("wants_to_file_counterclaim") and not wants_to_file_counterclaim:
+    superior_court_debt_counterclaim_attachment.enabled = False
+  elif defined("no_counterclaim") and no_counterclaim:
+    superior_court_debt_counterclaim_attachment.enabled = False
+---
 objects:
   - superior_court_debt_answer_attachment: ALDocument.using(title="Answer", filename="superior_court_debt_answer", enabled=True, has_addendum=False)
-  - superior_court_debt_counterclaim_attachment: ALDocument.using(title="Counterclaim", filename="superior_court_debt_counterclaim", enabled=wants_to_file_counterclaim, has_addendum=False)
+  - superior_court_debt_counterclaim_attachment: ALDocument.using(title="Counterclaim", filename="superior_court_debt_counterclaim", has_addendum=False)
   - superior_court_debt_next_steps: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="superior_court_debt_next_steps", enabled=True, has_addendum=False)
   - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False)
   - financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form", filename="VT_financial_disclosure.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -1238,11 +1347,18 @@ depends on:
   - counterclaims
   - counterclaims_description
 code: |
-  merged_counterclaims_text = ""
+    merged_counterclaims_text = ""
 
-  if sued_by_collection_agency:
-    for item in counterclaims.true_values():
-      merged_counterclaims_text += counterclaims_terms[item] + "\n"
+    if sued_by_collection_agency:
+      for item in counterclaims.true_values():
+        merged_counterclaims_text += counterclaims_terms[item] + "\n"
 
-  if counterclaims_description.strip():
-    merged_counterclaims_text += counterclaims_description
+    if defined("counterclaims_description") and counterclaims_description.strip():
+      merged_counterclaims_text += counterclaims_description
+
+    if defined("wants_to_file_counterclaim") and not wants_to_file_counterclaim:
+      merged_counterclaims_text = ""
+    
+    if defined("no_counterclaim") and no_counterclaim:
+      merged_counterclaims_text = ""
+---
