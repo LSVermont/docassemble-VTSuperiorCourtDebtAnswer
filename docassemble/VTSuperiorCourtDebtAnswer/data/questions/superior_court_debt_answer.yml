@@ -1284,9 +1284,16 @@ subquestion: |
 progress: 100
 ---
 ############ Documents ############
+---
+code: |
+  if defined("wants_to_file_counterclaim") and not wants_to_file_counterclaim:
+    superior_court_debt_counterclaim_attachment.enabled = False
+  elif defined("no_counterclaim") and no_counterclaim:
+    superior_court_debt_counterclaim_attachment.enabled = False
+---
 objects:
   - superior_court_debt_answer_attachment: ALDocument.using(title="Answer", filename="superior_court_debt_answer", enabled=True, has_addendum=False)
-  - superior_court_debt_counterclaim_attachment: ALDocument.using(title="Counterclaim", filename="superior_court_debt_counterclaim", enabled=wants_to_file_counterclaim, has_addendum=False)
+  - superior_court_debt_counterclaim_attachment: ALDocument.using(title="Counterclaim", filename="superior_court_debt_counterclaim", has_addendum=False)
   - superior_court_debt_next_steps: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="superior_court_debt_next_steps", enabled=True, has_addendum=False)
   - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False)
   - financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form", filename="VT_financial_disclosure.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
@@ -1340,11 +1347,18 @@ depends on:
   - counterclaims
   - counterclaims_description
 code: |
-  merged_counterclaims_text = ""
+    merged_counterclaims_text = ""
 
-  if sued_by_collection_agency:
-    for item in counterclaims.true_values():
-      merged_counterclaims_text += counterclaims_terms[item] + "\n"
+    if sued_by_collection_agency:
+      for item in counterclaims.true_values():
+        merged_counterclaims_text += counterclaims_terms[item] + "\n"
 
-  if counterclaims_description.strip():
-    merged_counterclaims_text += counterclaims_description
+    if defined("counterclaims_description") and counterclaims_description.strip():
+      merged_counterclaims_text += counterclaims_description
+
+    if defined("wants_to_file_counterclaim") and not wants_to_file_counterclaim:
+      merged_counterclaims_text = ""
+    
+    if defined("no_counterclaim") and no_counterclaim:
+      merged_counterclaims_text = ""
+---
