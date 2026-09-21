@@ -289,28 +289,26 @@ code: |
   counterclaims_intro
   if sued_by_collection_agency:
     if len(counterclaims.true_values()) == 0:
-      no_counterclaims
-    else:
-      counterclaims_amount
+      if wants_to_file_counterclaim:
+        counterclaims_amount
+      else:
+        no_counterclaims
   else:
     if wants_to_file_counterclaim:
       counterclaims_amount
     else:
       no_counterclaims
   
-  if len(defenses.true_values()) > 0:
-    wants_to_file_counterclaim
-    if wants_to_file_counterclaim:
+  if wants_to_file_counterclaim:
+    wants_counterclaim_other_relief
+    if wants_counterclaim_other_relief:
+      counterclaim_reliefs.gather()
+    else:
+      counterclaim_reliefs.there_are_any = False
 
-      wants_counterclaim_other_relief
-      if wants_counterclaim_other_relief:
-        counterclaim_reliefs.gather()
-      else:
-        counterclaim_reliefs.there_are_any = False
-
-      wants_to_fill_out_fee_waiver_now
-      if wants_to_fill_out_fee_waiver_now:
-        interview_order_VT_fee_waiver
+    wants_to_fill_out_fee_waiver_now
+    if wants_to_fill_out_fee_waiver_now:
+      interview_order_VT_fee_waiver
   else:
     wants_to_file_counterclaim = False
   set_progress(72)
@@ -1125,13 +1123,6 @@ code: |
   else:
     VT_fee_waiver_attachment.enabled = False
 ---
-#What relief do you want?
-#o	If disagreed to something in complaint: Dismiss the claims against me.
-#o	If agreed to everything in complaint: I want to start making payments by installments, or I want to pay in full, or type in what you want to do.
-#o	If judgement proof: Dismiss the claims against me.
-#o	If judgement proof now, but not in near future, ...
-
-
 id: wants other relief
 question: |
   Do you want to ask the court for anything else?
@@ -1218,6 +1209,364 @@ code: |
   if defined('living_expenses_more_than_income') and living_expenses_more_than_income:
     certificate_of_service_prechecked_documents.append("Financial Disclosure Affidavit")
 ---
+
+
+
+########################################## DRAFT REVIEW SCREEN ##################
+---
+id: review screen
+event: review_superior_court_debt_answer
+question: |
+  Review your answers
+subquestion: |
+  THIS SCREEN IS IN DEVELOPMENT
+review:
+  - Edit: users.revisit
+    button: |
+      **Users**
+
+      % for item in users:
+      - ${ item }
+      % endfor
+  - Edit: other_parties.revisit
+    button: |
+      **Other Parties**
+
+      % for item in other_parties:
+      - ${ item }
+      % endfor
+  - Edit: allegation_answers.revisit
+    button: |
+      **Allegation Answers**
+
+      % for item in allegation_answers:
+      - ${ item }
+      % endfor
+  - Edit: other_reliefs.revisit
+    button: |
+      **Other Reliefs**
+
+      % for item in other_reliefs:
+      - ${ item }
+      % endfor
+  - Edit: counterclaim_reliefs.revisit
+    button: |
+      **Counterclaim Reliefs**
+
+      % for item in counterclaim_reliefs:
+      - ${ item }
+      % endfor
+  - Edit: payment
+    button: |
+      **You agree with the complaint**
+
+      Check one of the following.: ${ showifdef('payment') }
+
+      I can pay this amount: ${ currency(agrees_to_pay_installments_amount) if defined('agrees_to_pay_installments_amount') else '' }
+
+      Every: ${ showifdef('agrees_to_pay_installments_period') }
+
+      Starting on this date: ${ showifdef('agrees_to_pay_installments_start_date') }
+
+      Describe the other way: ${ showifdef('agrees_to_pay_other_description') }
+  - Edit: signature_choice
+    button: |
+      **Your documents are almost ready**
+
+      % if al_form_requires_digital_signature and not ( device() and (device().is_mobile or device().is_touch_capable) ):
+      I will sign <span class='visually-hidden'>desktop</span>: ${ showifdef('signature_choice') }
+      % endif
+
+      % if al_form_requires_digital_signature and ( device() and (device().is_mobile or device().is_touch_capable) ):
+      I will sign <span class='visually-hidden'>mobile</span>: ${ showifdef('signature_choice') }
+      % endif
+
+      % if not al_form_requires_digital_signature and not ( device() and (device().is_mobile or device().is_touch_capable) ):
+      I will sign <span class='visually-hidden'>desktop with print</span>: ${ showifdef('signature_choice') }
+      % endif
+
+      % if not al_form_requires_digital_signature and ( device() and (device().is_mobile or device().is_touch_capable) ):
+      I will sign <span class='visually-hidden'>mobile with print</span>: ${ showifdef('signature_choice') }
+      % endif
+  - Edit: got_debt_complaint
+    button: |
+      **Is this tool right for you?**
+
+      Did you get a document called a **Complaint** that talks about a debt that a person or business thinks you owe?: ${ word(yesno(got_debt_complaint)) if defined('got_debt_complaint') else '' }
+
+      % if showifdef('got_debt_complaint') == True:
+      Does it say **Small Claims Complaint**?: ${ word(yesno(small_claims_complaint)) if defined('small_claims_complaint') else '' }
+      % endif
+  - Edit: plaintiff_requests_nonmoney
+    button: |
+      **What is the Plaintiff asking for?**
+
+      Is the Plaintiff asking the court for anything that is **not money**?: ${ word(yesno(plaintiff_requests_nonmoney)) if defined('plaintiff_requests_nonmoney') else '' }
+  - Edit: summons_response_days
+    button: |
+      **The Summons**
+
+      How many days does the Summons say you have to respond?: ${ showifdef('summons_response_days') }
+  - Edit: has_docket_number
+    button: |
+      **Case number**
+
+      Is there a case number on the Complaint?: ${ word(yesno(has_docket_number)) if defined('has_docket_number') else '' }
+
+      % if showifdef('has_docket_number'):
+      Does the case number include **CV** (which stands for **Civil Court**)?: ${ word(yesno(docket_number_has_cv)) if defined('docket_number_has_cv') else '' }
+      % endif
+
+      % if showifdef('docket_number_has_cv') == False:
+      Does the Complaint say it is a **Small Claims Complaint**?: ${ word(yesno(complaint_says_small_claims)) if defined('complaint_says_small_claims') else '' }
+      % endif
+
+      % if showifdef('docket_number_has_cv'):
+      What is the case number?: ${ showifdef('docket_number') }
+      % endif
+  - Edit: date_received
+    button: |
+      **When did you receive the Complaint?**
+
+      Date recieved:: ${ showifdef('date_received') }
+  - Edit: acknowledged_information_use
+    button: |
+      **Getting started**
+
+      To continue, please accept our [terms of use](https://vtlawhelp.org/vtcourtforms/terms-of-use).: ${ showifdef('acknowledged_information_use') }
+  - Edit: users.there_is_another
+    button: |
+      **Are there any other ${ user_role }s named in the case?**
+
+      ${ word(yesno(users.there_is_another)) if defined('users.there_is_another') else '' }
+  - Edit: users[0].address.address
+    button: |
+      **What is your address?**
+
+      Address: ${ users[0].address.block() if defined('users[0].address.address') else '' }
+
+      I have a mailing address that is different from my street address: ${ word(yesno(users1_mailing_address_different)) if defined('users1_mailing_address_different') else '' }
+
+      % if showifdef('users1_mailing_address_different'):
+      Mailing address: ${ showifdef('users[0].mailing_address.address') }
+      % endif
+
+      % if showifdef('users1_mailing_address_different'):
+      Unit: ${ showifdef('users[0].mailing_address.unit') }
+      % endif
+
+      % if showifdef('users1_mailing_address_different'):
+      City: ${ showifdef('users[0].mailing_address.city') }
+      % endif
+
+      % if showifdef('users1_mailing_address_different'):
+      Zip or postal code: ${ showifdef('users[0].mailing_address.zip') }
+      % endif
+  - Edit: users[0].phone_number
+    button: |
+      **Phone and email**
+
+      Your home or cell phone number: ${ showifdef('users[0].phone_number') }
+
+      Your work phone or other number: ${ showifdef('users[0].work_phone_number') }
+
+      Your email address: ${ showifdef('users[0].email') }
+  - Edit: other_parties.there_is_another
+    button: |
+      **Is there another plaintiff in this case?**
+
+      ${ word(yesno(other_parties.there_is_another)) if defined('other_parties.there_is_another') else '' }
+  - Edit: number_of_complaint_paragraphs
+    button: |
+      **How many numbered paragraphs are in the Complaint?**
+
+      Number of numbered paragraphs: ${ showifdef('number_of_complaint_paragraphs') }
+
+  
+  - Edit: defenses
+    button: |
+      **Any reasons why you believe you do **not** owe this money?**
+
+      Check any boxes that describe your situation, or check None: ${ showifdef('defenses') }
+  - Edit: disagrees_additional_explanation
+    button: |
+      **Do you want to add any more details?**
+
+      More explanation: ${ showifdef('disagrees_additional_explanation') }
+  - Edit: disagrees_additional_explanation
+    button: |
+      **Do you want to add any more details?**
+
+      More explanation (optional): ${ showifdef('disagrees_additional_explanation') }
+  - Edit: counterclaims
+    button: |
+      <strong>
+      % if len(other_parties) > 1:
+      Do you want to make a counterclaim against the third-party debt collectors?
+      % else:
+      Do you want to make a counterclaim against the third-party debt collector ${ other_parties[0] }?
+      % endif
+      </strong>
+
+      Check any box that describes your situation, or check None: ${ showifdef('counterclaims') }
+  - Edit:
+      - wants_to_file_counterclaim
+      - follow up:
+        - counterclaims_amount
+      - recompute:
+        - superior_court_debt_counterclaim_attachment.enabled
+    button: |
+      **Do you want to make a counterclaim?**
+
+      Do you want to file a counterclaim against ${ other_parties.short_list(2) }?: ${ word(yesno(wants_to_file_counterclaim)) if defined('wants_to_file_counterclaim') else '' }
+  - Edit: sued_by_collection_agency
+    button: |
+      <strong>
+      % if len(other_parties) > 1:
+      Are plaintiffs a third-party debt collector?
+      % else:
+      Is ${ other_parties[0] } a third-party debt collector?
+      % endif
+      </strong>
+
+      Are any of the plaintiffs a **third-party debt collector**?: ${ showifdef('sued_by_collection_agency') }
+  - Edit: counterclaims_amount
+    button: |
+      **Counterclaim details**
+
+      I want to ask the court for this amount of money in my counterclaim: ${ currency(counterclaims_amount) if defined('counterclaims_amount') else '' }
+
+      Describe the reason(s) for your counterclaim against ${ other_parties.short_list(2) }. Be specific.: ${ showifdef('counterclaims_description') }
+  - Edit: wants_counterclaim_other_relief
+    button: |
+      **Do you want to ask for any other relief on your counterclaim?**
+
+      ${ word(yesno(wants_counterclaim_other_relief)) if defined('wants_counterclaim_other_relief') else '' }
+  - Edit: counterclaim_reliefs.there_is_another
+    button: |
+      **Do you want to add another request for relief on your counterclaim?**
+
+      ${ word(yesno(counterclaim_reliefs.there_is_another)) if defined('counterclaim_reliefs.there_is_another') else '' }
+  - Edit: wants_to_fill_out_fee_waiver_now
+    button: |
+      **Would you like to fill out a fee waiver?**
+
+      Do you want to fill out a fee waiver form for your counterclaim?: ${ word(yesno(wants_to_fill_out_fee_waiver_now)) if defined('wants_to_fill_out_fee_waiver_now') else '' }
+  - Edit: has_exempt_income_state
+    button: |
+      **Do you have "exempt" income?**
+
+      ${ showifdef('has_exempt_income_state') }
+
+      ${ showifdef('has_exempt_income_other') }
+  - Edit: living_expenses_more_than_income
+    button: |
+      **Are your living expenses more than your income?**
+
+      Are the reasonable living expenses for you and your dependents, such as family members who live with you, **more than your income after taxes**?: ${ word(yesno(living_expenses_more_than_income)) if defined('living_expenses_more_than_income') else '' }
+  - Edit: wants_financial_disclosure_affidavit
+    button: |
+      **Financial Disclosure Affidavit**
+
+      Do you want to fill out a Financial Disclosure Affidavit form?: ${ word(yesno(wants_financial_disclosure_affidavit)) if defined('wants_financial_disclosure_affidavit') else '' }
+  - Edit: otherwise_exempt
+    button: |
+      **Is there another reason your income may be exempt?**
+
+      Other reason: ${ showifdef('otherwise_exempt') }
+  - Edit: wants_other_relief_choices
+    button: |
+      **Do you want to ask the court for anything else?**
+
+      Select an option: ${ showifdef('wants_other_relief_choices') }
+  - Edit: other_reliefs.there_is_another
+    button: |
+      **Do you want to add another request?**
+
+      ${ word(yesno(other_reliefs.there_is_another)) if defined('other_reliefs.there_is_another') else '' }
+  - Edit: printed_signature
+    button: |
+      **Signature date**
+
+      This is how your name will appear under your signature.: ${ showifdef('printed_signature') }
+  - Edit: user.signature
+    button: |
+      **Sign your forms**
+
+      Sign your forms
+      : ${ showifdef('user.signature') }
+---
+id: revisit users
+continue button field: users.revisit
+question: Edit your answers about Users
+subquestion: |-
+  ${users.table}
+
+  ${users.add_action()}
+---
+id: revisit other_parties
+continue button field: other_parties.revisit
+question: Edit your answers about Other Parties
+subquestion: |-
+  ${other_parties.table}
+
+  ${other_parties.add_action()}
+---
+id: revisit allegation_answers
+continue button field: allegation_answers.revisit
+question: Edit your answers about Allegation Answers
+subquestion: |-
+  ${allegation_answers.table}
+
+  ${allegation_answers.add_action()}
+---
+id: revisit other_reliefs
+continue button field: other_reliefs.revisit
+question: Edit your answers about Other Reliefs
+subquestion: |-
+  ${other_reliefs.table}
+
+  ${other_reliefs.add_action()}
+---
+id: revisit counterclaim_reliefs
+continue button field: counterclaim_reliefs.revisit
+question: Edit your answers about Counterclaim Reliefs
+subquestion: |-
+  ${counterclaim_reliefs.table}
+
+  ${counterclaim_reliefs.add_action()}
+---
+table: allegation_answers.table
+rows: allegation_answers
+columns:
+  - "Your response to Paragraph ${ i + 1 }": row_item.choice if hasattr(row_item, 'choice') else ''
+  - "Short explanation": row_item.explanation if hasattr(row_item, 'explanation') else ''
+edit:
+  - choice
+  - explanation
+---
+table: other_reliefs.table
+rows: other_reliefs
+columns:
+  - "Your request": row_item.name if hasattr(row_item, 'name') else ''
+edit:
+  - name
+---
+table: counterclaim_reliefs.table
+rows: counterclaim_reliefs
+columns:
+  - "${ capitalize(ordinal(i)) } other relief": row_item.name if hasattr(row_item, 'name') else ''
+edit:
+  - name
+---
+
+
+
+
+
+
+
+---
 code: |
   signature_fields = ['users[0].signature']
 ---
@@ -1285,11 +1634,20 @@ progress: 100
 ---
 ############ Documents ############
 ---
+id: enable counterclaim doc or not
 code: |
-  if defined("wants_to_file_counterclaim") and not wants_to_file_counterclaim:
-    superior_court_debt_counterclaim_attachment.enabled = False
-  elif defined("no_counterclaim") and no_counterclaim:
-    superior_court_debt_counterclaim_attachment.enabled = False
+  if defined("wants_to_file_counterclaim"):
+    if wants_to_file_counterclaim:
+      superior_court_debt_counterclaim_attachment.enabled = True
+    else:
+      superior_court_debt_counterclaim_attachment.enabled = False
+  
+  if defined("no_counterclaims"):
+    if no_counterclaims:
+      superior_court_debt_counterclaim_attachment.enabled = False
+    else:
+      superior_court_debt_counterclaim_attachment.enabled = True
+reconsider: True
 ---
 objects:
   - superior_court_debt_answer_attachment: ALDocument.using(title="Answer", filename="superior_court_debt_answer", enabled=True, has_addendum=False)
@@ -1359,6 +1717,6 @@ code: |
     if defined("wants_to_file_counterclaim") and not wants_to_file_counterclaim:
       merged_counterclaims_text = ""
     
-    if defined("no_counterclaim") and no_counterclaim:
+    if defined("no_counterclaims") and no_counterclaims:
       merged_counterclaims_text = ""
 ---
