@@ -289,28 +289,26 @@ code: |
   counterclaims_intro
   if sued_by_collection_agency:
     if len(counterclaims.true_values()) == 0:
-      no_counterclaims
-    else:
-      counterclaims_amount
+      if wants_to_file_counterclaim:
+        counterclaims_amount
+      else:
+        no_counterclaims
   else:
     if wants_to_file_counterclaim:
       counterclaims_amount
     else:
       no_counterclaims
   
-  if len(defenses.true_values()) > 0:
-    wants_to_file_counterclaim
-    if wants_to_file_counterclaim:
+  if wants_to_file_counterclaim:
+    wants_counterclaim_other_relief
+    if wants_counterclaim_other_relief:
+      counterclaim_reliefs.gather()
+    else:
+      counterclaim_reliefs.there_are_any = False
 
-      wants_counterclaim_other_relief
-      if wants_counterclaim_other_relief:
-        counterclaim_reliefs.gather()
-      else:
-        counterclaim_reliefs.there_are_any = False
-
-      wants_to_fill_out_fee_waiver_now
-      if wants_to_fill_out_fee_waiver_now:
-        interview_order_VT_fee_waiver
+    wants_to_fill_out_fee_waiver_now
+    if wants_to_fill_out_fee_waiver_now:
+      interview_order_VT_fee_waiver
   else:
     wants_to_file_counterclaim = False
   set_progress(72)
@@ -1286,10 +1284,17 @@ progress: 100
 ############ Documents ############
 ---
 code: |
-  if defined("wants_to_file_counterclaim") and not wants_to_file_counterclaim:
-    superior_court_debt_counterclaim_attachment.enabled = False
-  elif defined("no_counterclaim") and no_counterclaim:
-    superior_court_debt_counterclaim_attachment.enabled = False
+  if defined("wants_to_file_counterclaim"):
+    if wants_to_file_counterclaim:
+      superior_court_debt_counterclaim_attachment.enabled = True
+    else:
+      superior_court_debt_counterclaim_attachment.enabled = False
+  
+  if defined("no_counterclaims"):
+    if no_counterclaims:
+      superior_court_debt_counterclaim_attachment.enabled = False
+    else:
+      superior_court_debt_counterclaim_attachment.enabled = True
 ---
 objects:
   - superior_court_debt_answer_attachment: ALDocument.using(title="Answer", filename="superior_court_debt_answer", enabled=True, has_addendum=False)
@@ -1359,6 +1364,6 @@ code: |
     if defined("wants_to_file_counterclaim") and not wants_to_file_counterclaim:
       merged_counterclaims_text = ""
     
-    if defined("no_counterclaim") and no_counterclaim:
+    if defined("no_counterclaims") and no_counterclaims:
       merged_counterclaims_text = ""
 ---
