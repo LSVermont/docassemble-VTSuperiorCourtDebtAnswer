@@ -4,5 +4,6 @@ Superior Court debt answer
 
 ## Author
 
-Kris Surette, VTCourtForms / Legal Services Vermont
+K. Surette, VTCourtForms / Legal Services Vermont
+K. McGuire, Lemma Legal
 
