@@ -36,7 +36,7 @@ fields:
   - "Check one of the following.": payment
     datatype: radio
     choices:
-      - "I agree to pay the amount in full within 30 days. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year).": agrees_to_pay_in_full
+      - "I agree to pay the amount in full within 30 days. (If unpaid after 30 days, interest on the unpaid amount will accrue at 12% per year???????).": agrees_to_pay_in_full
       - "I cannot pay the full amount at one time. I'd like to ask the court for installment payments.": agrees_to_pay_installments
       - "I want to pay in a different way": agrees_to_pay_other
   - "I can pay this amount": agrees_to_pay_installments_amount
@@ -63,6 +63,10 @@ fields:
       val("payment") == "agrees_to_pay_other"
 
 continue button field: agreeing_with_complaint_and_payments
+---
+code: |
+  if defined('payment') and payment == 'agrees_to_pay_in_full':
+    pay_in_full_date = today().plus(days=30)
 ---
 id: signature choice
 decoration: file-signature
@@ -1213,10 +1217,6 @@ code: |
 
   if defined('living_expenses_more_than_income') and living_expenses_more_than_income:
     certificate_of_service_prechecked_documents.append("Financial Disclosure Affidavit")
----
-code: |
-  if defined('payment') and payment == 'agrees_to_pay_in_full':
-    pay_in_full_date = today().plus(days=30)
 ---
 code: |
   signature_fields = ['users[0].signature']
