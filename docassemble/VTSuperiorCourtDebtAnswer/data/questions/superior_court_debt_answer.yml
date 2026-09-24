@@ -398,9 +398,9 @@ id: screening debt complaint
 question: |
   Is this tool right for you?
 subquestion: |
+  **This tool is for creating an answer for Superior Court**. We have a [different tool for Small Claims Court.](https://vtlawhelp.org/vtcourtforms/small-claims-answer)
+    
   If you are getting sued for debt collection in Superior Court, it is often because the debt is too large for Small Claims Court.
-
-  This tool is for creating an answer for Superior Court. We have a different tool for Small Claims Court.
 
   The Complaint might say something like:
 
@@ -594,6 +594,8 @@ sets:
   - users[0].address.country
 question: |
   What is your address?
+subquestion: |
+  ${ collapse_template(use_friends_address) }
 fields:
   - code: |
       users[0].address_fields(default_state=AL_DEFAULT_STATE)
@@ -614,6 +616,12 @@ fields:
   - Zip or postal code: users[0].mailing_address.zip
     required: False
     show if: users1_mailing_address_different
+---
+template: use_friends_address
+subject: |
+  What if I can't get mail right now?
+content: |
+  If you are experiencing homelessness or don't have a way to get mail, enter a safe mailing address of a trusted friend or relative. Be sure to check often for mail from court and the other party.
 ---
 id: phone and email
 question: |
