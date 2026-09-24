@@ -384,6 +384,8 @@ subquestion: |
   - Financial Disclosure Affidavit (VTCourtForms will tell you if you need this)
 
   Some people use the court's answer form and others do not. Either approach is allowed. To be flexible for all users, this tool does not use the court’s answer form. Instead, it builds an answer document for you.
+  
+  **If you are not the only defendant in the case**: Each defendant must create and submit their own Answer and the forms that go with it.
 
   <i class="fas fa-clock fa-2x"></i> It may take about 40 minutes to complete this interview.
 
