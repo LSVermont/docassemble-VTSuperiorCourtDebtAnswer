@@ -717,7 +717,7 @@ fields:
     show if:
       variable: allegation_answers[i].choice
       is: agree_disagree
-  - Short explanation: allegation_answers[i].explanation
+  - "Short explanation (optional):": allegation_answers[i].explanation
     input type: area
     maxlength: 500
     required: False
@@ -1147,13 +1147,12 @@ subquestion: |
 
   We will collect your relief requests one at a time.
 
-  If you agree with the complaint, you might select None.
-
 fields:
   - Select an option: wants_other_relief_choices
     datatype: checkboxes
     choices:
       - I want to ask for other relief.: other_relief
+      - "None -- I agree with the Complaint.": agrees_with_complaint
     none of the above: None -- I have no other requests.
 ---
 id: other relief item
