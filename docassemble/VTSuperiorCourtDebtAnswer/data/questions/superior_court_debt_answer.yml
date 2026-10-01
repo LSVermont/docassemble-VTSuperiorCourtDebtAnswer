@@ -5,7 +5,7 @@ include:
   - docassemble.VTSharedYMLFile:VTSharedYMLFile.yml
   - docassemble.VTFinancialDisclosure:VT_financial_disclosure_to_include.yml
   - docassemble.VTDisclosureOfExemptIncome:disclosure_of_exempt_income_to_include.yml
-  - docassemble.VTFeeWaiverWithIncludeYMLFile:VT_fee_waiver_to_include.yml
+  - docassemble.VTFeeWaiver:VT_fee_waiver_to_include.yml
   - docassemble.VTNoticeOfAppearance:VTNoticeOfAppearance_Civil_to_include.yml
   - docassemble.VTCertificateOfServiceGeneral:general_certificate_of_service_to_include.yml
 ---
@@ -385,7 +385,7 @@ subquestion: |
 
   Some people use the court's answer form and others do not. Either approach is allowed. To be flexible for all users, this tool does not use the court’s answer form. Instead, it builds an answer document for you.
 
-  <i class="fas fa-clock fa-2x"></i> It may take about 40 minutes to complete this interview.
+  <i class="fas fa-clock fa-2x"></i> It may take at least 40 minutes to complete this interview.
 
   <i class="fas fa-circle-info fa-2x"></i> This site is not a lawyer. Visit [VTLawHelp.org](https://vtlawhelp.org) for legal information.
 
@@ -478,7 +478,7 @@ subquestion: |
   % if ((defined('small_claims_complaint') and small_claims_complaint) or (defined('has_docket_number') and has_docket_number and defined('docket_number_has_cv') and not docket_number_has_cv)):
   This tool is for Superior Court debt cases, not Small Claims Court cases.
 
-  You can find information about Small Claims Complaints and use our tool to respond to a Small Claims Complaint [here](https://www.vtlawhelp.org/vtcourtforms/small-claims-answer).
+  You can find information about Small Claims Complaints and [use our tool to respond to a Small Claims Complaint](https://www.vtlawhelp.org/vtcourtforms/small-claims-answer).
 
   If you are not sure if this is a Small Claims Court case or a case in Superior Court, call the court and ask!
   % elif defined('plaintiff_requests_nonmoney') and plaintiff_requests_nonmoney:
@@ -495,7 +495,7 @@ buttons:
 ---
 id: screening date complaint received
 question: |
-  When did you receive the Complaint?
+  When did you get the Complaint?
 fields:
   - "Date recieved:": date_received
     datatype: date
@@ -508,7 +508,7 @@ id: screening late answer warning
 question: |
   File your answer as soon as possible
 subquestion: |
-  You said you received the Complaint on ${ date_received }. Based on the 21-day response period, your answer was due by **${ answer_deadline }**.
+  You said you got the Complaint on ${ date_received }. Based on the 21-day response period, your answer was due by **${ answer_deadline }**.
     
   **You should file your answer as soon as possible**, before the Plaintiff asks for a default judgment.
   
@@ -525,7 +525,7 @@ question: |
 subquestion: |
   <i class="fas fa-check fa-3x" style="color: #429a3c;" aria-hidden="true"></i> Yes, you can use this tool.
 
-  You said you received the Complaint on ${ date_received }. Based on the 21-day response period, your answer is due by **${ answer_deadline }**.
+  You said you got the Complaint on ${ date_received }. Based on the 21-day response period, your answer is due by **${ answer_deadline }**.
 continue button field: you_can_use_this_tool
 ---
 id: lets get started
@@ -650,7 +650,9 @@ sets:
 question: |
   Name of **${ ordinal(i) }** plaintiff in this case
 subquestion: |
-  A plaintiff is the person, company, or organization suing you. There may be more than one plaintiff. Look at the Complaint for this information.
+  A plaintiff is the person, company or organization suing you. There may be more than one plaintiff.
+  
+  Look at the top of the Complaint for this information.
 
   If there is more than one plaintiff, we will collect their information one at a time.
 fields:
@@ -1326,7 +1328,7 @@ review:
       % endif
   - Edit: date_received
     button: |
-      **When did you receive the Complaint?**
+      **When did you get the Complaint?**
 
       Date recieved:: ${ showifdef('date_received') }
   - Edit: acknowledged_information_use
@@ -1447,7 +1449,10 @@ review:
       **Do you want to add another request for relief on your counterclaim?**
 
       ${ word(yesno(counterclaim_reliefs.there_is_another)) if defined('counterclaim_reliefs.there_is_another') else '' }
-  - Edit: wants_to_fill_out_fee_waiver_now
+  - Edit:
+    - wants_to_fill_out_fee_waiver_now
+    - follow up:
+      - interview_order_VT_fee_waiver
     button: |
       **Would you like to fill out a fee waiver?**
 
@@ -1655,7 +1660,7 @@ objects:
   - superior_court_debt_next_steps: ALDocument.using(title="NEXT STEPS - Instructions for filing these forms with the court", filename="superior_court_debt_next_steps", enabled=True, has_addendum=False)
   - disclosure_of_exempt_income_attachment: ALDocument.using(title="Disclosure of exempt income", filename="disclosure_of_exempt_income", has_addendum=False)
   - financial_disclosure_attachment: ALDocument.using(title="Financial Disclosure form", filename="VT_financial_disclosure.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
-  - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - VT_fee_waiver_attachment: ALDocument.using(title="Fee waiver form", filename="VT_fee_waiver_to_include.pdf", has_addendum=True, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
 ---
 objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[superior_court_debt_next_steps, superior_court_debt_answer_attachment, superior_court_debt_counterclaim_attachment, a_civil_notice_of_appearance_self_rep_attachment, disclosure_of_exempt_income_attachment, financial_disclosure_attachment, VT_fee_waiver_attachment, certificate_of_service_attachment], filename="superior_court_debt_answer", title="All forms to download", enabled=True)
