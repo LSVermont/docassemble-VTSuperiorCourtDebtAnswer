@@ -7,7 +7,7 @@ include:
   - docassemble.VTDisclosureOfExemptIncome:disclosure_of_exempt_income_to_include.yml
   - docassemble.VTFeeWaiverWithIncludeYMLFile:VT_fee_waiver_to_include.yml
   - docassemble.VTNoticeOfAppearance:VTNoticeOfAppearance_Civil_to_include.yml
-  - docassemble.VTCertificateOfServiceGeneral:general_certificate_of_service_to_include.yml
+  - docassemble.VTCertificateOfServiceGeneral:debt_answer_certificate_of_service_to_include.yml
 ---
 depends on:
  - defenses['dont_owe']
@@ -283,6 +283,8 @@ code: |
   else:
     no_defenses_check
     agreeing_with_complaint_and_payments
+    if payment == 'agrees_to_pay_in_full':
+      pay_in_full_date
   set_progress(62)
 
   nav.set_section('counterclaims')
