@@ -349,6 +349,8 @@ code: |
 mandatory: True
 id: main order superior court debt answer
 code: |
+  # allow representative to sign on behalf of user
+  ask_about_representative_signature = True
   al_intro_screen
   superior_court_debt_answer_interview_order
   nav.set_section("review_superior_court_debt_answer")
@@ -571,9 +573,21 @@ subquestion: |
   % if i > 0:
   Enter the name as it appears on the court papers.
   % endif
+
+  % if i == 0:
+  ${ collapse_template(what_name_should_be_entered_help) }
+  % endif
 fields:
   - code: |
       users[i].name_fields()
+---
+template: what_name_should_be_entered_help
+subject: |
+  What if I am filling this out for someone else?
+content: |
+  If you are filling this out on behalf of someone else you should enter their name here.
+
+  Tip: Look at the court papers. They will list the ${ user_role }s.
 ---
 id: any other users
 question: |
@@ -1573,28 +1587,8 @@ columns:
 edit:
   - name
 ---
-
-
-
-
-
-
-
----
 code: |
   signature_fields = ['users[0].signature']
----
-id: signature date
-question: |
-  Signature date
-fields:
-  - This is how your name will appear under your signature.: printed_signature
-    default: ${ users[0].name }
----
-id: gather signature
-question: |
-  Sign your forms
-signature: user.signature
 ---
 id: preview superior court debt answer
 question: |
