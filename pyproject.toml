@@ -18,7 +18,7 @@ dependencies = [
     "docassemble.VTFeeWaiver @ git+https://github.com/LSVermont/docassemble-VTFeeWaiver.git@main",
     "docassemble.VTFinancialDisclosure @ git+https://github.com/LSVermont/docassemble-VTFinancialDisclosure.git@main",
     "docassemble.VTNoticeOfAppearance @ git+https://github.com/LSVermont/docassemble-VTNoticeOfAppearance.git@main",
-    "docassemble.VTSharedYMLFile @ git+https://github.com/LSVermont/docassemble-VTSharedYMLFile.git@add_representative_signature_option",
+    "docassemble.VTSharedYMLFile @ git+https://github.com/LSVermont/docassemble-VTSharedYMLFile.git@main",
 ]
 license = "MIT"
 license-files = [

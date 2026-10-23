@@ -220,6 +220,11 @@ data:
   - sign: Sign your documents
   - get_docs: Download your documents
 ---
+id: enable representative signature option
+mandatory: True
+code: |
+  ask_about_representative_signature = True
+---
 ############ Interview order ############
 id: interview order superior court debt answer
 code: |
@@ -349,8 +354,6 @@ code: |
 mandatory: True
 id: main order superior court debt answer
 code: |
-  # allow representative to sign on behalf of user
-  ask_about_representative_signature = True
   al_intro_screen
   superior_court_debt_answer_interview_order
   nav.set_section("review_superior_court_debt_answer")
